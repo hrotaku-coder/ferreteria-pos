@@ -16,6 +16,20 @@ frame_top = tk.Frame(
 )
 frame_top.pack(fill="x")
 
+frame_cliente = tk.LabelFrame(
+    ventana,
+    text="Datos del Cliente",
+    bg="#bfcad3",
+    fg="white",
+    font=("Arial", 12, "bold"),
+    bd=3,
+    relief="groove",
+    padx=10,
+    pady=10
+)
+
+frame_cliente.pack(fill="x", padx=10, pady=10)
+
 btn_nueva_venta = tk.Button(
     frame_top,
     text="Nueva Venta F1",
