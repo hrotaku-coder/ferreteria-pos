@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 
 import productos
+import ventas
 
 class VentanaVenta:
 
@@ -177,7 +178,8 @@ class VentanaVenta:
             bg="green",
             fg="white",
             width=15,
-            height=2
+            height=2,
+            command=self.cobrar
         )
 
         self.btn_cobrar.pack(side="top", pady=5)
@@ -245,9 +247,48 @@ class VentanaVenta:
             total
         ))
 
-        print("✅ Producto agregado")
+        self.calcular_total()
         
-        
+    def calcular_total(self):
+        total = 0
+
+        for item in self.tabla.get_children():
+            valores = self.tabla.item(item, "values")
+
+            subtotal = float(valores[4])  # columna total
+            total += subtotal
+
+        # mostrar en pantalla
+        self.lbl_total_valor.config(text=f"$ {int(total)}")
+
+    def cobrar(self):
+        documento = self.combo_nit.get()
+
+        if not documento:
+            print("⚠️ Selecciona un cliente")
+            return
+
+        productos_vendidos = []
+
+        for item in self.tabla.get_children():
+            valores = self.tabla.item(item, "values")
+
+            referencia = valores[0]
+            cantidad = int(valores[2])
+
+            productos_vendidos.append((referencia, cantidad))
+
+        if not productos_vendidos:
+            print("⚠️ No hay productos en la venta")
+            return
+
+        # 🔥 GUARDAR EN BD
+        resultado = ventas.crear_venta(documento, productos_vendidos)
+
+        if resultado:
+            print("✅ Venta guardada correctamente")
+        else:
+            print("❌ No se pudo guardar la venta")
         
 # Ventana principal
 root = tk.Tk()

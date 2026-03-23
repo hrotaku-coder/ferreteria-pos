@@ -83,7 +83,7 @@ def crear_venta(documento_cliente, productos_vendidos):
 
         if cliente is None:
             print("❌ Cliente no existe")
-            return
+            return False
 
         cliente_id, nombre_cliente = cliente
 
@@ -127,10 +127,12 @@ def crear_venta(documento_cliente, productos_vendidos):
         conn.commit()
 
         print(f"✅ Venta realizada a {nombre_cliente}. Total: {total}")
+        return True
 
     except Exception as e:
         conn.rollback()
         print("❌ Error en la venta:", e)
+        return False
 
     finally:
         conn.close()
