@@ -56,12 +56,7 @@ def listar_productos():
 
     conn.close()
 
-    print("\n📦 LISTA DE PRODUCTOS")
-    print("-" * 40)
-
-    for p in productos:
-        print(f"ID: {p[0]} | Nombre: {p[1]} | Ref: {p[2]} | Precio: {p[3]} | Stock: {p[4]}")
-
+    return productos
 
 # 📌 Buscar producto por referencia
 def buscar_producto(referencia):
