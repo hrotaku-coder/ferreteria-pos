@@ -65,7 +65,7 @@ def buscar_cliente(documento):
         return None
 
 
-# 📌 Listar clientes
+# 📌 Listar clientes (🔥 CORREGIDO)
 def listar_clientes():
     conn = conectar()
     cursor = conn.cursor()
@@ -75,11 +75,7 @@ def listar_clientes():
 
     conn.close()
 
-    print("\n👤 LISTA DE CLIENTES")
-    print("-" * 40)
-
-    for c in clientes:
-        print(f"ID: {c[0]} | Nombre: {c[1]} | Doc: {c[2]} | Tel: {c[3]}")
+    return clientes  # 🔥 ESTO ES LO IMPORTANTE
 
 
 # 🚀 PRUEBA
@@ -90,6 +86,12 @@ if __name__ == "__main__":
     agregar_cliente("Juan Perez", "123456", "3001234567")
     agregar_cliente("Empresa XYZ", "900123456", "3109876543")
 
-    listar_clientes()
+    lista = listar_clientes()
+
+    print("\n👤 LISTA DE CLIENTES")
+    print("-" * 40)
+
+    for c in lista:
+        print(f"ID: {c[0]} | Nombre: {c[1]} | Doc: {c[2]} | Tel: {c[3]}")
 
     buscar_cliente("123456")

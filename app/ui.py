@@ -1,9 +1,11 @@
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
+from datetime import datetime
 
 import productos
 import ventas
+import clientes
 
 class VentanaVenta:
 
@@ -33,7 +35,8 @@ class VentanaVenta:
             text="Crear cliente F2",
             font=("Arial", 11),
             bd=2,
-            relief="raised"
+            relief="raised",
+            command=self.abrir_ventana_cliente
         )
 
         self.btn_crearcliente.pack(side="left", padx=10, pady=10)
@@ -57,10 +60,18 @@ class VentanaVenta:
         self.combo_nit = ttk.Combobox(self.frame_datoscliente, font="sans 12")
         self.combo_nit.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
+        self.combo_nit.bind("<<ComboboxSelected>>", self.seleccionar_cliente_nit)
+        self.combo_nit.bind("<KeyRelease>", self.filtrar_clientes_nit)
+        
         self.lbl_cliente = tk.Label(self.frame_datoscliente, text="Cliente:", font="Arial 12", bg="#D1D3D5")
         self.lbl_cliente.grid(row=1, column=0, padx=5, pady=5)
         self.combo_cliente = ttk.Combobox(self.frame_datoscliente, font="sans 12", width=40)
         self.combo_cliente.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        
+        self.combo_cliente.bind("<<ComboboxSelected>>", self.seleccionar_cliente_nombre)
+        self.combo_cliente.bind("<KeyRelease>", self.filtrar_clientes_nombre)
+        
+        self.cargar_clientes()
         
         # CONTENEDOR INFORMACION FACTURA
         self.frame_informacionfactura = tk.LabelFrame(self.ventana, text="Informacion De Factura", font="Arial 12 bold", bg="#D1D3D5",)
@@ -71,10 +82,16 @@ class VentanaVenta:
         self.entry_factura = ttk.Entry(self.frame_informacionfactura, font="sans 12", width=10)
         self.entry_factura.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
+        self.numero_factura = 1
+        self.entry_factura.insert(0, str(self.numero_factura))
+        
         self.lbl_fecha = tk.Label(self.frame_informacionfactura, text="Fecha:", font="Arial 12", bg="#D1D3D5")
         self.lbl_fecha.grid(row=1, column=0, padx=5, pady=5)
         self.entry_fecha = ttk.Entry(self.frame_informacionfactura, font="sans 12", width=15)
         self.entry_fecha.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+      
+        fecha_actual = datetime.now().strftime("%Y-%m-%d")
+        self.entry_fecha.insert(0, fecha_actual)
         
         # CONTENEDOR BUSQUEDA DE PRODUCTO
         self.frame_busqueda = tk.LabelFrame(self.ventana, text="Busqueda de producto", font="Arial 12 bold", bg="#D1D3D5",)
@@ -86,6 +103,7 @@ class VentanaVenta:
         self.combo_producto.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
         self.combo_producto.bind("<<ComboboxSelected>>", self.seleccionar_producto)
+        self.combo_producto.bind("<KeyRelease>", self.filtrar_productos)
         
         self.cargar_productos()
         
@@ -184,16 +202,18 @@ class VentanaVenta:
 
         self.btn_cobrar.pack(side="top", pady=5)
         
+        self.ventana.bind("<F2>", self.atajo_crear_cliente)
+        
     def cargar_productos(self):
         lista_productos = productos.listar_productos()
 
-        nombres = []
+        self.lista_productos = []
         self.productos_dict = {}
 
         for p in lista_productos:
             id_, nombre, referencia, precio, stock = p
 
-            nombres.append(nombre)
+            self.lista_productos.append(nombre)
 
             # guardamos todo para usar después
             self.productos_dict[nombre] = {
@@ -202,7 +222,7 @@ class VentanaVenta:
                 "stock": stock
             }
 
-        self.combo_producto["values"] = nombres
+        self.combo_producto["values"] = self.lista_productos
         
     def seleccionar_producto(self, event):
         nombre = self.combo_producto.get()
@@ -219,6 +239,20 @@ class VentanaVenta:
 
             # 👉 NUEVO: guardar precio en memoria
             self.precio_actual = precio
+            
+    def seleccionar_cliente_nit(self, event):
+        documento = self.combo_nit.get()
+
+        if documento in self.clientes_dict:
+            nombre = self.clientes_dict[documento]["nombre"]
+            self.combo_cliente.set(nombre)
+            
+    def seleccionar_cliente_nombre(self, event):
+        nombre = self.combo_cliente.get()
+
+        if nombre in self.clientes_dict:
+            documento = self.clientes_dict[nombre]["documento"]
+            self.combo_nit.set(documento)
             
     def agregar_producto(self):
         nombre = self.combo_producto.get()
@@ -287,11 +321,130 @@ class VentanaVenta:
 
         if resultado:
             print("✅ Venta guardada correctamente")
+            self.limpiar_venta()
         else:
             print("❌ No se pudo guardar la venta")
+            
+    def limpiar_venta(self):
+        # limpiar tabla
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+
+        # limpiar campos
+        self.combo_producto.set("")
+        self.entry_cantidad.delete(0, tk.END)
+        self.entry_stock.delete(0, tk.END)
+
+        # reset total
+        self.lbl_total_valor.config(text="$ 0")
+        
+        # aumentar número de factura
+        self.numero_factura += 1
+        self.entry_factura.delete(0, tk.END)
+        self.entry_factura.insert(0, str(self.numero_factura))
+ 
+    def cargar_clientes(self):
+        lista = clientes.listar_clientes()
+
+        self.clientes_dict = {}
+
+        self.lista_docs = []
+        self.lista_nombres = []
+
+        for c in lista:
+            id_, nombre, documento, telefono = c
+
+            self.lista_docs.append(documento)
+            self.lista_nombres.append(nombre)
+
+            self.clientes_dict[documento] = {
+                "id": id_,
+                "nombre": nombre
+            }
+
+            self.clientes_dict[nombre] = {
+                "id": id_,
+                "documento": documento
+            }
+
+        self.combo_nit["values"] = self.lista_docs
+        self.combo_cliente["values"] = self.lista_nombres
+        
+    def abrir_ventana_cliente(self):
+        self.ventana_cliente = tk.Toplevel(self.ventana)
+        self.ventana_cliente.title("Nuevo Cliente")
+        self.ventana_cliente.geometry("300x250")
+
+        # Nombre
+        tk.Label(self.ventana_cliente, text="Nombre").pack(pady=5)
+        self.entry_nombre_cliente = tk.Entry(self.ventana_cliente)
+        self.entry_nombre_cliente.pack(pady=5)
+
+        # Documento
+        tk.Label(self.ventana_cliente, text="Documento").pack(pady=5)
+        self.entry_doc_cliente = tk.Entry(self.ventana_cliente)
+        self.entry_doc_cliente.pack(pady=5)
+
+        # Teléfono
+        tk.Label(self.ventana_cliente, text="Teléfono").pack(pady=5)
+        self.entry_tel_cliente = tk.Entry(self.ventana_cliente)
+        self.entry_tel_cliente.pack(pady=5)
+
+        # Botón guardar
+        tk.Button(
+            self.ventana_cliente,
+            text="Guardar",
+            command=self.guardar_cliente
+        ).pack(pady=10)
+        
+    def guardar_cliente(self):
+        nombre = self.entry_nombre_cliente.get()
+        documento = self.entry_doc_cliente.get()
+        telefono = self.entry_tel_cliente.get()
+
+        if not nombre or not documento:
+            print("⚠️ Datos incompletos")
+            return
+
+        clientes.agregar_cliente(nombre, documento, telefono)
+
+        print("✅ Cliente guardado")
+
+        # cerrar ventana
+        self.ventana_cliente.destroy()
+
+        # recargar clientes en combobox
+        self.cargar_clientes()
+        
+    def atajo_crear_cliente(self, event):
+        self.abrir_ventana_cliente()
+        
+    def filtrar_productos(self, event):
+        texto = self.combo_producto.get().lower()
+
+        filtrados = [p for p in self.lista_productos if texto in p.lower()]
+
+        self.combo_producto["values"] = filtrados
+        self.combo_producto.event_generate("<Down>")
+        
+    def filtrar_clientes_nombre(self, event):
+        texto = self.combo_cliente.get().lower()
+
+        filtrados = [n for n in self.lista_nombres if texto in n.lower()]
+
+        self.combo_cliente["values"] = filtrados
+        self.combo_producto.event_generate("<Down>")
+        
+    def filtrar_clientes_nit(self, event):
+        texto = self.combo_nit.get().lower()
+
+        filtrados = [d for d in self.lista_docs if texto in d.lower()]
+
+        self.combo_nit["values"] = filtrados
+        self.combo_producto.event_generate("<Down>")
         
 # Ventana principal
-root = tk.Tk()
-app = VentanaVenta(root)
-
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = VentanaVenta(root)
+    root.mainloop()
