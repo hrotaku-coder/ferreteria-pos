@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+from tkinter import filedialog
+from openpyxl import load_workbook
+import csv
 
 import productos
 
@@ -20,6 +23,8 @@ class VentanaProductos:
         
         self.combo_buscarproducto = ttk.Combobox(self.frame_operaciones, font="sans 12", width=40)
         self.combo_buscarproducto.grid(row=0, column=1, columnspan=2, padx=10, pady=10, sticky="w")
+
+        self.combo_buscarproducto.bind("<KeyRelease>", self.filtrar_productos)
         
         
         self.btn_crearproducto = tk.Button(
@@ -40,7 +45,8 @@ class VentanaProductos:
             text="Editar Producto",
             font=("Arial", 11),
             bg="#D1D3D5",
-            width=20
+            width=20,
+            command=self.editar_producto
             
         )
 
@@ -60,7 +66,8 @@ class VentanaProductos:
             compound="left",
             font=("Arial", 11),
             bg="#D1D3D5",
-            width=180
+            width=180,
+            command=self.importar_productos
             
         )
 
@@ -148,13 +155,22 @@ class VentanaProductos:
             print("⚠️ Precio o stock inválidos")
             return
         
-        productos.agregar_producto(nombre, referencia, precio, stock)
-
-        print("✅ Producto guardado correctamente")
+        if hasattr(self, "modo_edicion") and self.modo_edicion:
+            productos.actualizar_producto(self.referencia_original, nombre, referencia, precio, stock)
+            print("✏️ Producto actualizado")
+            self.modo_edicion = False
+        else:
+            productos.agregar_producto(nombre, referencia, precio, stock)
+            print("✅ Producto guardado correctamente")
         
+        self.cargar_productos()
         self.ventana_form.destroy()
         
     def cargar_productos(self):
+
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+
         lista = productos.listar_productos()
 
         for p in lista:
@@ -166,6 +182,113 @@ class VentanaProductos:
                 precio,
                 stock
             ))
+
+    def obtener_producto_seleccionado(self):
+        seleccion = self.tabla.focus()
+
+        if not seleccion:
+            print("⚠️ Selecciona un producto")
+            return None
+
+        datos = self.tabla.item(seleccion, "values")
+        return datos
+    
+    def editar_producto(self):
+        datos = self.obtener_producto_seleccionado()
+
+        if not datos:
+            return
+
+        referencia, nombre, precio, stock = datos
+
+        self.abrir_formulario_producto()
+
+        self.entry_referen.insert(0, referencia)
+        self.entry_producto.insert(0, nombre)
+        self.entry_precio.insert(0, precio)
+        self.entry_stock.insert(0, stock)
+
+        self.modo_edicion = True
+        self.referencia_original = referencia
+
+
+    def importar_productos(self):
+        ruta = filedialog.askopenfilename(
+            title="Seleccionar archivo",
+            filetypes=(
+                ("Archivos Excel", "*.xlsx"),
+                ("Archivos CSV", "*.csv"),
+                ("Todos los archivos", "*.*")
+            )
+        )
+
+        if not ruta:
+            return
+
+        print("Archivo seleccionado:", ruta)
+
+        if ruta.endswith(".xlsx"):
+            self.importar_excel(ruta)
+        else:
+            self.importar_csv(ruta)
+
+        with open(ruta, newline='', encoding='utf-8') as archivo:
+            lector = csv.reader(archivo)
+
+            for fila in lector:
+                try:
+                    nombre = fila[0]
+                    referencia = fila[1]
+                    precio = float(fila[2])
+                    stock = int(fila[3])
+
+                    productos.agregar_producto(nombre, referencia, precio, stock)
+
+                except Exception as e:
+                    print("Error en fila:", fila, e)
+        
+        self.cargar_productos()
+        print("✅ Importación completada")
+
+    def importar_excel(self, ruta):
+        libro = load_workbook(ruta)
+        hoja = libro.active
+
+        for fila in hoja.iter_rows(min_row=2, values_only=True):
+            try:
+                nombre = fila[0]
+                referencia = fila[1]
+                precio = float(fila[2])
+                stock = int(fila[3])
+
+                productos.agregar_producto(nombre, referencia, precio, stock)
+
+            except Exception as e:
+                print("Error en fila:", fila, e)
+
+        self.cargar_productos()
+        print("✅ Importación desde Excel completada")
+
+    def filtrar_productos(self, event):
+        texto = self.combo_buscarproducto.get().lower()
+
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+
+        lista = productos.listar_productos()
+
+        for p in lista:
+            id_, nombre, referencia, precio, stock = p
+
+            if texto in nombre.lower() or texto in referencia.lower():
+                self.tabla.insert("", "end", values=(
+                    referencia,
+                    nombre,
+                    precio,
+                    stock
+                ))
+
+
             
 if __name__ == "__main__":
     root = tk.Tk()

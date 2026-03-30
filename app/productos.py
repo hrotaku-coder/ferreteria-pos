@@ -86,3 +86,16 @@ if __name__ == "__main__":
     listar_productos()
 
     buscar_producto("MART-001")
+
+def actualizar_producto(referencia_original, nombre, referencia, precio, stock):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE productos
+    SET nombre = ?, referencia = ?, precio = ?, stock = ?
+    WHERE referencia = ?
+    """, (nombre, referencia, precio, stock, referencia_original))
+
+    conn.commit()
+    conn.close()
