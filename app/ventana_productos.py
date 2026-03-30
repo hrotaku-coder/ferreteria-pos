@@ -68,6 +68,36 @@ class VentanaProductos:
         
         self.btn_importarproducto.image = self.icono_import
         
+        self.frame_tabla = tk.LabelFrame(
+            self.ventana,
+            text="Lista de Productos",
+            font="Arial 12 bold",
+            bg="#D1D3D5"
+        )
+
+        self.frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        self.tabla = ttk.Treeview(self.frame_tabla)
+
+        self.tabla["columns"] = ("referencia", "nombre", "precio", "stock")
+
+        self.tabla.column("#0", width=0, stretch=tk.NO)
+
+        self.tabla.column("referencia", anchor="w", width=150)
+        self.tabla.column("nombre", anchor="w", width=300)
+        self.tabla.column("precio", anchor="e", width=100)
+        self.tabla.column("stock", anchor="center", width=100)
+
+        self.tabla.heading("#0", text="")
+        self.tabla.heading("referencia", text="Referencia")
+        self.tabla.heading("nombre", text="Nombre del Producto")
+        self.tabla.heading("precio", text="Precio")
+        self.tabla.heading("stock", text="Stock")
+
+        self.tabla.pack(fill="both", expand=True)
+        
+        self.cargar_productos()
+        
     def abrir_formulario_producto(self):
         self.ventana_form = tk.Toplevel(self.ventana)
         self.ventana_form.title("Nuevo Producto")
@@ -123,6 +153,19 @@ class VentanaProductos:
         print("✅ Producto guardado correctamente")
         
         self.ventana_form.destroy()
+        
+    def cargar_productos(self):
+        lista = productos.listar_productos()
+
+        for p in lista:
+            id_, nombre, referencia, precio, stock = p
+
+            self.tabla.insert("", "end", values=(
+                referencia,
+                nombre,
+                precio,
+                stock
+            ))
             
 if __name__ == "__main__":
     root = tk.Tk()
