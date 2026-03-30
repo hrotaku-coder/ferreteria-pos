@@ -2,6 +2,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 from ui import VentanaVenta
+from ventana_productos import VentanaProductos
 
 class VentanaMenu:
 
@@ -52,10 +53,11 @@ class VentanaMenu:
         
         self.btn_producto = tk.Button(
             frame_producto,
-            text="Ingresar Productos",
+            text="Productos",
             font="Arial 10 bold",
             width=ANCHO_BOTON,
-            height=ALTO_BOTON
+            height=ALTO_BOTON,
+            command=self.abrir_productos  
         ) 
         self.btn_producto.grid(row=0, column=1, padx=10)
         
@@ -81,8 +83,13 @@ class VentanaMenu:
         self.btn_reporte.grid(row=0, column=1, padx=10)
         
     def abrir_factura(self):
-            nueva = tk.Toplevel(self.ventana)
-            VentanaVenta(nueva)
+        nueva = tk.Toplevel(self.ventana)
+        VentanaVenta(nueva)
+            
+    def abrir_productos(self):
+        nueva = tk.Toplevel(self.ventana)
+        VentanaProductos(nueva)
+
         
 
 
