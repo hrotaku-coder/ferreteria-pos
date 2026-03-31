@@ -229,24 +229,9 @@ class VentanaProductos:
 
         if ruta.endswith(".xlsx"):
             self.importar_excel(ruta)
-        else:
+        elif ruta.endswith(".csv"):
             self.importar_csv(ruta)
 
-        with open(ruta, newline='', encoding='utf-8') as archivo:
-            lector = csv.reader(archivo)
-
-            for fila in lector:
-                try:
-                    nombre = fila[0]
-                    referencia = fila[1]
-                    precio = float(fila[2])
-                    stock = int(fila[3])
-
-                    productos.agregar_producto(nombre, referencia, precio, stock)
-
-                except Exception as e:
-                    print("Error en fila:", fila, e)
-        
         self.cargar_productos()
         print("✅ Importación completada")
 
@@ -287,6 +272,22 @@ class VentanaProductos:
                     precio,
                     stock
                 ))
+                
+    def importar_csv(self, ruta):
+        with open(ruta, newline='', encoding='utf-8') as archivo:
+            lector = csv.reader(archivo)
+
+            for fila in lector:
+                try:
+                    nombre = fila[0]
+                    referencia = fila[1]
+                    precio = float(fila[2])
+                    stock = int(fila[3])
+
+                    productos.agregar_producto(nombre, referencia, precio, stock)
+
+                except Exception as e:
+                    print("Error en fila:", fila, e)
 
 
             
