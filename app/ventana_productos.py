@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from openpyxl import load_workbook
+from tkinter import messagebox
 import csv
 
 import productos
@@ -74,6 +75,18 @@ class VentanaProductos:
         self.btn_importarproducto.grid(row=1, column=2, padx=10, pady=10, sticky="w")
         
         self.btn_importarproducto.image = self.icono_import
+        
+        self.btn_eliminarproducto = tk.Button(
+            self.frame_operaciones,
+            text="Eliminar Producto",
+            font=("Arial", 11),
+            bg="#D1D3D5",
+            width=20,
+            command=self.eliminar_producto
+            
+        )
+        
+        self.btn_eliminarproducto.grid(row=1, column=3, padx=10, pady=10, sticky="w")
         
         self.frame_tabla = tk.LabelFrame(
             self.ventana,
@@ -288,6 +301,31 @@ class VentanaProductos:
 
                 except Exception as e:
                     print("Error en fila:", fila, e)
+                    
+    def eliminar_producto(self):
+        datos = self.obtener_producto_seleccionado()
+
+        if not datos:
+            return
+
+        referencia = datos[0]
+
+        respuesta = tk.messagebox.askyesno(
+            "Confirmar",
+            f"¿Eliminar producto {referencia}?"
+        )
+
+        if respuesta:
+            conn = productos.conectar()
+            cursor = conn.cursor()
+
+            cursor.execute("DELETE FROM productos WHERE referencia = ?", (referencia,))
+            conn.commit()
+            conn.close()
+
+            print("🗑 Producto eliminado")
+
+            self.cargar_productos()
 
 
             

@@ -22,7 +22,7 @@ git pull origin main
 git pull origin main   # traer cambios
 # haces cambios en tu código
 git add .
-git commit -m "Formulario de productos conectado y guardando datos en base de datos"
+git commit -m ""
 git push origin main
 
 🔍 VER ESTADO
