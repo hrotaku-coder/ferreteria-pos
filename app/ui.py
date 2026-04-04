@@ -2,6 +2,7 @@ from tkinter import *
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
+from tkinter import messagebox
 
 import productos
 import ventas
@@ -46,7 +47,8 @@ class VentanaVenta:
             text="Eliminar producto Del.",
             font=("Arial", 11),
             bd=2,
-            relief="raised"
+            relief="raised",
+            command=self.eliminar_producto
         )
 
         self.btn_eliminarproducto.pack(side="left", padx=10, pady=10)
@@ -57,19 +59,27 @@ class VentanaVenta:
         
         self.lbl_nit = tk.Label(self.frame_datoscliente, text="NIT/CC:", font="Arial 12", bg="#D1D3D5")
         self.lbl_nit.grid(row=0, column=0, padx=5, pady=5)
-        self.combo_nit = ttk.Combobox(self.frame_datoscliente, font="sans 12")
+        self.combo_nit = ttk.Combobox(self.frame_datoscliente, font="sans 12", state="normal")
         self.combo_nit.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        self.combo_nit.bind("<<ComboboxSelected>>", self.seleccionar_cliente_nit)
+        self.combo_nit.bind("<<ComboboxSelected>>", self.seleccionar_y_continuar_nit)
         self.combo_nit.bind("<KeyRelease>", self.filtrar_clientes_nit)
+        
+        self.combo_nit.bind("<Return>", self.ir_a_producto)
+        
+        self.combo_nit.bind("<Down>", lambda e: self.combo_nit.event_generate("<Button-1>"))
         
         self.lbl_cliente = tk.Label(self.frame_datoscliente, text="Cliente:", font="Arial 12", bg="#D1D3D5")
         self.lbl_cliente.grid(row=1, column=0, padx=5, pady=5)
-        self.combo_cliente = ttk.Combobox(self.frame_datoscliente, font="sans 12", width=40)
+        self.combo_cliente = ttk.Combobox(self.frame_datoscliente, font="sans 12", width=40, state="normal")
         self.combo_cliente.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         
-        self.combo_cliente.bind("<<ComboboxSelected>>", self.seleccionar_cliente_nombre)
+        self.combo_cliente.bind("<<ComboboxSelected>>", self.seleccionar_y_continuar_cliente)
         self.combo_cliente.bind("<KeyRelease>", self.filtrar_clientes_nombre)
+        
+        self.combo_cliente.bind("<Return>", self.ir_a_producto)
+        
+        self.combo_cliente.bind("<Down>", lambda e: self.combo_cliente.event_generate("<Button-1>"))
         
         self.cargar_clientes()
         
@@ -99,11 +109,15 @@ class VentanaVenta:
         
         self.lbl_producto = tk.Label(self.frame_busqueda, text="Buscar producto:", font="Arial 12", bg="#D1D3D5")
         self.lbl_producto.grid(row=0, column=0, padx=5, pady=5)
-        self.combo_producto = ttk.Combobox(self.frame_busqueda, font="sans 12", width=40)
+        self.combo_producto = ttk.Combobox(self.frame_busqueda, font="sans 12", width=40, state="normal")
         self.combo_producto.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        self.combo_producto.bind("<<ComboboxSelected>>", self.seleccionar_producto)
+        self.combo_producto.bind("<<ComboboxSelected>>", self.seleccionar_y_continuar_producto)
         self.combo_producto.bind("<KeyRelease>", self.filtrar_productos)
+        
+        self.combo_producto.bind("<Return>", self.ir_a_cantidad)
+
+        self.combo_producto.bind("<Down>", lambda e: self.combo_producto.event_generate("<Button-1>"))
         
         self.cargar_productos()
         
@@ -111,6 +125,11 @@ class VentanaVenta:
         self.lbl_cantidad.grid(row=0,column=2, padx=5, pady=5)
         self.entry_cantidad = ttk.Entry(self.frame_busqueda, font="sans 12", width=6)
         self.entry_cantidad.grid(row=0, column=3,padx=5, pady=5, sticky="w")
+        
+        self.entry_cantidad.insert(0, "1")
+        
+        self.entry_cantidad.bind("<Return>", self.agregar_producto_evento)
+        self.entry_cantidad.bind("<FocusIn>", lambda e: self.entry_cantidad.select_range(0, tk.END))
         
         self.lbl_stock = tk.Label(self.frame_busqueda, text="Stock", font="Arial 12", bg="#D1D3D5")
         self.lbl_stock.grid(row=0,column=4, padx=5, pady=5)
@@ -123,10 +142,12 @@ class VentanaVenta:
             font=("Arial", 11),
             bd=2,
             relief="raised",
-            command=self.agregar_producto
+            command=self.agregar_y_reset
         )
 
         self.btn_agregar.grid(row=0, column=6, padx=5, pady=5)
+        
+        self.btn_agregar.bind("<Return>", lambda e: self.agregar_y_reset())
         
         #TABLA DE DETALLE FACTURA
         self.frame_tabla = tk.LabelFrame(
@@ -204,6 +225,12 @@ class VentanaVenta:
         
         self.ventana.bind("<F2>", self.atajo_crear_cliente)
         
+        self.ventana.bind("<Delete>", self.eliminar_producto_evento)
+        
+        self.ventana.bind("<F3>", self.cobrar_evento)
+        
+        self.ventana.after(100, lambda: self.combo_nit.focus())
+        
     def cargar_productos(self):
         lista_productos = productos.listar_productos()
 
@@ -240,6 +267,10 @@ class VentanaVenta:
             # 👉 NUEVO: guardar precio en memoria
             self.precio_actual = precio
             
+    def seleccionar_y_continuar_producto(self, event):
+        self.seleccionar_producto(event)
+        self.ir_a_cantidad(event)
+            
     def seleccionar_cliente_nit(self, event):
         documento = self.combo_nit.get()
 
@@ -247,12 +278,22 @@ class VentanaVenta:
             nombre = self.clientes_dict[documento]["nombre"]
             self.combo_cliente.set(nombre)
             
+    def seleccionar_y_continuar_nit(self, event):
+        self.seleccionar_cliente_nit(event)
+        self.ir_a_producto(event)
+
+            
     def seleccionar_cliente_nombre(self, event):
         nombre = self.combo_cliente.get()
 
-        if nombre in self.clientes_dict:
-            documento = self.clientes_dict[nombre]["documento"]
-            self.combo_nit.set(documento)
+        for doc, datos in self.clientes_dict.items():
+            if isinstance(datos, dict) and datos.get("nombre") == nombre:
+                self.combo_nit.set(doc)
+                break
+            
+    def seleccionar_y_continuar_cliente(self, event):
+        self.seleccionar_cliente_nombre(event)
+        self.ir_a_producto(event)
             
     def agregar_producto(self):
         nombre = self.combo_producto.get()
@@ -260,19 +301,68 @@ class VentanaVenta:
 
         # Validación básica
         if not nombre or not cantidad:
-            print("⚠️ Falta producto o cantidad")
+            messagebox.showwarning("Campos incompletos", "Debes seleccionar un producto y cantidad")
             return
 
-        cantidad = int(cantidad)
+        try:
+            cantidad = int(cantidad)
+        except ValueError:
+            messagebox.showerror("Error", "La cantidad debe ser un número válido")
+            self.entry_cantidad.focus()
+            return
+
+        # ✅ VALIDAR QUE SEA MAYOR A 0
+        if cantidad <= 0:
+            messagebox.showwarning("Cantidad inválida", "La cantidad debe ser mayor a 0")
+            self.entry_cantidad.focus()
+            return
+        
+        # ✅ VALIDAR QUE EL PRODUCTO EXISTA
+        if nombre not in self.productos_dict:
+            messagebox.showerror("Error", "Producto no válido")
+            return
 
         datos = self.productos_dict[nombre]
 
         referencia = datos["referencia"]
         precio = datos["precio"]
+        stock = datos["stock"]
+
+        # 🔥 BUSCAR SI YA EXISTE EN LA TABLA
+        for item in self.tabla.get_children():
+            valores = self.tabla.item(item, "values")
+
+            ref_tabla = valores[0]
+            cantidad_tabla = int(valores[2])
+
+            if ref_tabla == referencia:
+                nueva_cantidad = cantidad_tabla + cantidad
+
+                # ❌ VALIDAR STOCK
+                if nueva_cantidad > stock:
+                    messagebox.showerror("Stock insuficiente", f"Disponible: {stock}")
+                    return
+
+                nuevo_total = nueva_cantidad * precio
+
+                self.tabla.item(item, values=(
+                    referencia,
+                    nombre,
+                    nueva_cantidad,
+                    precio,
+                    nuevo_total
+                ))
+
+                self.calcular_total()
+                return
+
+        # 👉 SI NO EXISTE → VALIDAR STOCK
+        if cantidad > stock:
+            messagebox.showerror("Stock insuficiente", f"Disponible: {stock}")
+            return
 
         total = cantidad * precio
 
-        # Insertar en tabla
         self.tabla.insert("", "end", values=(
             referencia,
             nombre,
@@ -283,6 +373,22 @@ class VentanaVenta:
 
         self.calcular_total()
         
+    def agregar_y_reset(self):
+        self.agregar_producto()
+
+        # reset cantidad
+        self.entry_cantidad.delete(0, tk.END)
+        self.entry_cantidad.insert(0, "1")
+
+        # limpiar producto
+        self.combo_producto.set("")
+
+        # limpiar stock
+        self.entry_stock.delete(0, tk.END)
+
+        # volver al buscador
+        self.combo_producto.focus()
+                
     def calcular_total(self):
         total = 0
 
@@ -299,7 +405,7 @@ class VentanaVenta:
         documento = self.combo_nit.get()
 
         if not documento:
-            print("⚠️ Selecciona un cliente")
+            messagebox.showwarning("Cliente requerido", "Debes seleccionar un cliente")
             return
 
         productos_vendidos = []
@@ -313,7 +419,7 @@ class VentanaVenta:
             productos_vendidos.append((referencia, cantidad))
 
         if not productos_vendidos:
-            print("⚠️ No hay productos en la venta")
+            messagebox.showwarning("Sin productos", "No hay productos en la venta")
             return
 
         # 🔥 GUARDAR EN BD
@@ -325,14 +431,22 @@ class VentanaVenta:
         else:
             print("❌ No se pudo guardar la venta")
             
+    def cobrar_evento(self, event):
+        self.cobrar()
+            
+            
     def limpiar_venta(self):
         # limpiar tabla
         for item in self.tabla.get_children():
             self.tabla.delete(item)
+            
+        self.entry_cantidad.delete(0, tk.END)
+        self.entry_cantidad.insert(0, "1")
 
         # limpiar campos
         self.combo_producto.set("")
-        self.entry_cantidad.delete(0, tk.END)
+        self.combo_nit.set("")
+        self.combo_cliente.set("")
         self.entry_stock.delete(0, tk.END)
 
         # reset total
@@ -342,6 +456,8 @@ class VentanaVenta:
         self.numero_factura += 1
         self.entry_factura.delete(0, tk.END)
         self.entry_factura.insert(0, str(self.numero_factura))
+        
+        self.ventana.after(100, lambda: self.combo_nit.focus())
  
     def cargar_clientes(self):
         lista = clientes.listar_clientes()
@@ -425,7 +541,6 @@ class VentanaVenta:
         filtrados = [p for p in self.lista_productos if texto in p.lower()]
 
         self.combo_producto["values"] = filtrados
-        self.combo_producto.event_generate("<Down>")
         
     def filtrar_clientes_nombre(self, event):
         texto = self.combo_cliente.get().lower()
@@ -433,7 +548,6 @@ class VentanaVenta:
         filtrados = [n for n in self.lista_nombres if texto in n.lower()]
 
         self.combo_cliente["values"] = filtrados
-        self.combo_producto.event_generate("<Down>")
         
     def filtrar_clientes_nit(self, event):
         texto = self.combo_nit.get().lower()
@@ -441,7 +555,33 @@ class VentanaVenta:
         filtrados = [d for d in self.lista_docs if texto in d.lower()]
 
         self.combo_nit["values"] = filtrados
-        self.combo_producto.event_generate("<Down>")
+        
+    def eliminar_producto(self):
+        seleccion = self.tabla.focus()
+
+        if not seleccion:
+            print("⚠️ Selecciona un producto para eliminar")
+            return
+
+        respuesta = messagebox.askyesno("Confirmar", "¿Eliminar producto?")
+
+        if respuesta:
+            self.tabla.delete(seleccion)
+            self.calcular_total()
+        
+    def eliminar_producto_evento(self, event):
+        self.eliminar_producto()
+        
+        
+    def ir_a_producto(self, event):
+        self.combo_producto.focus()
+        
+    def ir_a_cantidad(self, event):
+        self.entry_cantidad.focus()
+        
+    def agregar_producto_evento(self, event):
+        self.agregar_y_reset()
+
         
 # Ventana principal
 if __name__ == "__main__":

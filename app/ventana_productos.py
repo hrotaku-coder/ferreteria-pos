@@ -88,6 +88,7 @@ class VentanaProductos:
         
         self.btn_eliminarproducto.grid(row=1, column=3, padx=10, pady=10, sticky="w")
         
+        
         self.frame_tabla = tk.LabelFrame(
             self.ventana,
             text="Lista de Productos",
