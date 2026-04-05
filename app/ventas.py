@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from db import obtener_siguiente_factura
 
 
 # 📌 Conexión
@@ -13,13 +14,14 @@ def crear_tablas():
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS ventas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fecha TEXT,
-        total REAL,
-        cliente_id INTEGER
-    )
-    """)
+        CREATE TABLE IF NOT EXISTS ventas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_factura TEXT,
+            fecha TEXT,
+            total REAL,
+            cliente_id INTEGER
+        )
+        """)
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS detalle_venta (
@@ -87,13 +89,6 @@ def crear_venta(documento_cliente, productos_vendidos):
 
         cliente_id, nombre_cliente = cliente
 
-        # Crear venta
-        cursor.execute("""
-        INSERT INTO ventas (fecha, total, cliente_id)
-        VALUES (?, ?, ?)
-        """, (fecha, 0, cliente_id))
-
-        id_venta = cursor.lastrowid
 
         for referencia, cantidad in productos_vendidos:
 
@@ -111,6 +106,33 @@ def crear_venta(documento_cliente, productos_vendidos):
 
             subtotal = precio * cantidad
             total += subtotal
+            
+        if total == 0:
+            print("❌ No hay productos válidos para vender")
+            return False
+        
+        numero_factura = obtener_siguiente_factura()
+
+        cursor.execute("""
+        INSERT INTO ventas (numero_factura, fecha, total, cliente_id)
+        VALUES (?, ?, ?, ?)
+        """, (numero_factura, fecha, total, cliente_id))
+
+        id_venta = cursor.lastrowid
+
+        for referencia, cantidad in productos_vendidos:
+
+            producto = obtener_producto(referencia)
+
+            if producto is None:
+                continue
+
+            nombre, precio, stock = producto
+
+            if stock < cantidad:
+                continue
+
+            subtotal = precio * cantidad
 
             # Guardar detalle
             cursor.execute("""
@@ -121,13 +143,10 @@ def crear_venta(documento_cliente, productos_vendidos):
             # Actualizar stock
             actualizar_stock(cursor, referencia, cantidad)
 
-        # Actualizar total
-        cursor.execute("UPDATE ventas SET total = ? WHERE id = ?", (total, id_venta))
-
         conn.commit()
 
         print(f"✅ Venta realizada a {nombre_cliente}. Total: {total}")
-        return True
+        return numero_factura
 
     except Exception as e:
         conn.rollback()

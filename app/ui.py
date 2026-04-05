@@ -4,6 +4,8 @@ from tkinter import ttk
 from datetime import datetime
 from tkinter import messagebox
 
+from db import obtener_siguiente_factura
+from db import ver_siguiente_factura
 import productos
 import ventas
 import clientes
@@ -89,11 +91,19 @@ class VentanaVenta:
         
         self.lbl_factura = tk.Label(self.frame_informacionfactura, text="No Factura:", font="Arial 12", bg="#D1D3D5")
         self.lbl_factura.grid(row=0, column=0, padx=5, pady=5)
-        self.entry_factura = ttk.Entry(self.frame_informacionfactura, font="sans 12", width=10)
+        
+        self.entry_factura = ttk.Entry(
+            self.frame_informacionfactura,
+            font="sans 12",
+            width=10,
+            state="readonly"
+        )        
         self.entry_factura.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        self.numero_factura = 1
-        self.entry_factura.insert(0, str(self.numero_factura))
+        self.numero_factura = ver_siguiente_factura()
+        self.entry_factura.config(state="normal")
+        self.entry_factura.insert(0, self.numero_factura)
+        self.entry_factura.config(state="readonly")
         
         self.lbl_fecha = tk.Label(self.frame_informacionfactura, text="Fecha:", font="Arial 12", bg="#D1D3D5")
         self.lbl_fecha.grid(row=1, column=0, padx=5, pady=5)
@@ -426,10 +436,10 @@ class VentanaVenta:
         resultado = ventas.crear_venta(documento, productos_vendidos)
 
         if resultado:
-            print("✅ Venta guardada correctamente")
+            messagebox.showinfo("Venta realizada", f"Factura: {resultado}")
             self.limpiar_venta()
         else:
-            print("❌ No se pudo guardar la venta")
+            messagebox.showerror("Error", "No se pudo guardar la venta")
             
     def cobrar_evento(self, event):
         self.cobrar()
@@ -453,9 +463,11 @@ class VentanaVenta:
         self.lbl_total_valor.config(text="$ 0")
         
         # aumentar número de factura
-        self.numero_factura += 1
+        self.numero_factura = ver_siguiente_factura()
+        self.entry_factura.config(state="normal")
         self.entry_factura.delete(0, tk.END)
-        self.entry_factura.insert(0, str(self.numero_factura))
+        self.entry_factura.insert(0, self.numero_factura)
+        self.entry_factura.config(state="readonly")
         
         self.ventana.after(100, lambda: self.combo_nit.focus())
  

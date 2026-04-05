@@ -1,9 +1,12 @@
+print("SE ESTA EJECUTANDO MENU.PY")
+
 import tkinter as tk
 from PIL import Image, ImageTk
 
 from ui import VentanaVenta
 from ventana_productos import VentanaProductos
 from db import crear_tablas
+
 
 crear_tablas()
 
