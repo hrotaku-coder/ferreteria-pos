@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 from tkinter import messagebox
+import os
+from factura_pdf import generar_pdf
 
 from db import obtener_siguiente_factura
 from db import ver_siguiente_factura
@@ -413,30 +415,52 @@ class VentanaVenta:
 
     def cobrar(self):
         documento = self.combo_nit.get()
+        nombre_cliente = self.combo_cliente.get() # Tomamos el nombre del cliente
 
         if not documento:
             messagebox.showwarning("Cliente requerido", "Debes seleccionar un cliente")
             return
 
-        productos_vendidos = []
+        productos_bd = []
+        productos_pdf = []
+        total_venta = 0
 
         for item in self.tabla.get_children():
             valores = self.tabla.item(item, "values")
 
+            # Obtenemos todos los datos de la fila
             referencia = valores[0]
+            nombre = valores[1]
             cantidad = int(valores[2])
+            precio = float(valores[3])
+            subtotal = float(valores[4])
 
-            productos_vendidos.append((referencia, cantidad))
+            # Lista simple para tu función ventas.crear_venta()
+            productos_bd.append((referencia, cantidad))
+            
+            # Lista completa para que el PDF se vea bien
+            productos_pdf.append((referencia, nombre, cantidad, precio, subtotal))
+            total_venta += subtotal
 
-        if not productos_vendidos:
+        if not productos_bd:
             messagebox.showwarning("Sin productos", "No hay productos en la venta")
             return
 
         # 🔥 GUARDAR EN BD
-        resultado = ventas.crear_venta(documento, productos_vendidos)
+        resultado = ventas.crear_venta(documento, productos_bd)
 
         if resultado:
-            messagebox.showinfo("Venta realizada", f"Factura: {resultado}")
+            # 🔥 GENERAR EL PDF
+            try:
+                ruta_pdf = generar_pdf(resultado, documento, nombre_cliente, productos_pdf, total_venta)
+                
+                # Esto abre el PDF automáticamente en la pantalla de tu computadora (Windows)
+                ruta_absoluta = os.path.abspath(ruta_pdf)
+                os.startfile(ruta_absoluta) 
+                
+            except Exception as e:
+                messagebox.showerror("Error PDF", f"Venta guardada, pero falló el PDF: {e}")
+
             self.limpiar_venta()
         else:
             messagebox.showerror("Error", "No se pudo guardar la venta")
