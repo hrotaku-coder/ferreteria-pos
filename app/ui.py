@@ -17,8 +17,21 @@ class VentanaVenta:
     def __init__(self, ventana):
         self.ventana = ventana
         self.ventana.title("Ferretería POS")
-        self.ventana.geometry("1080x800")
         self.ventana.configure(bg="#D1D3D5")
+        
+        # --- CENTRAR VENTANA DE VENTAS ---
+        ancho_ventana = 1080
+        alto_ventana = 800
+        
+        ancho_pantalla = self.ventana.winfo_screenwidth()
+        alto_pantalla = self.ventana.winfo_screenheight()
+        
+        x = int((ancho_pantalla / 2) - (ancho_ventana / 2))
+        y = int((alto_pantalla / 2) - (alto_ventana / 2))
+        
+        self.ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
+        
+        
         
         # CONTENEDOR PARA BOTONES NUEVA VENTA, CREAR CLIENTE Y ELIMINAR PRODUCTO
         self.frame_top = tk.Frame(self.ventana, bg="#D1D3D5", bd=3, relief="groove",)
@@ -525,7 +538,30 @@ class VentanaVenta:
     def abrir_ventana_cliente(self):
         self.ventana_cliente = tk.Toplevel(self.ventana)
         self.ventana_cliente.title("Nuevo Cliente")
-        self.ventana_cliente.geometry("300x250")
+        
+        # --- 2. CENTRAR LA VENTANA EN LA PANTALLA ---
+        # (Ajusta el 400 y 500 al tamaño que tenga tu formulario de clientes)
+        ancho_ventana = 400 
+        alto_ventana = 250
+        
+        ancho_pantalla = self.ventana_cliente.winfo_screenwidth()
+        alto_pantalla = self.ventana_cliente.winfo_screenheight()
+        
+        x = int((ancho_pantalla / 2) - (ancho_ventana / 2))
+        y = int((alto_pantalla / 2) - (alto_ventana / 2))
+        
+        self.ventana_cliente.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
+        
+        # --- 3. CONVERTIRLA EN VENTANA MODAL (BLOQUEAR LA DE ATRÁS) ---
+        
+        # Evita que se minimice de forma independiente y la mantiene al frente
+        self.ventana_cliente.transient(self.ventana) 
+        
+        # Atrapa todos los eventos (clics y teclado), bloqueando la VentanaVenta
+        self.ventana_cliente.grab_set() 
+        
+        # Pone el cursor/foco automáticamente en esta nueva ventana
+        self.ventana_cliente.focus_set()
 
         # Nombre
         tk.Label(self.ventana_cliente, text="Nombre").pack(pady=5)

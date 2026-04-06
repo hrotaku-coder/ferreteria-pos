@@ -13,8 +13,19 @@ class VentanaProductos:
     def __init__ (self, ventana):
         self.ventana = ventana
         self.ventana.title("Gestion de Productos")
-        self.ventana.geometry("1080x800")
         self.ventana.configure(bg="#D1D3D5")
+        
+        # --- CENTRAR VENTANA DE PRODUCTOS ---
+        ancho_ventana = 1080
+        alto_ventana = 800
+        
+        ancho_pantalla = self.ventana.winfo_screenwidth()
+        alto_pantalla = self.ventana.winfo_screenheight()
+        
+        x = int((ancho_pantalla / 2) - (ancho_ventana / 2))
+        y = int((alto_pantalla / 2) - (alto_ventana / 2))
+        
+        self.ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
 
         self.frame_operaciones = tk.LabelFrame(self.ventana, text="Gestion de Productos", font="Arial 12 bold", bg="#D1D3D5")
         self.frame_operaciones.pack(fill="x", padx=10, pady=10,)
@@ -122,8 +133,24 @@ class VentanaProductos:
     def abrir_formulario_producto(self):
         self.ventana_form = tk.Toplevel(self.ventana)
         self.ventana_form.title("Nuevo Producto")
-        self.ventana_form.geometry("600x250")
         self.ventana_form.configure(bg="#D1D3D5")
+        
+        ancho_ventana = 600
+        alto_ventana = 250
+        
+        ancho_pantalla = self.ventana_form.winfo_screenwidth() # --- Obtener ancho de pantalla
+        alto_pantalla = self.ventana_form.winfo_screenheight() # --- Obtener alto de pantalla
+        
+        x = int((ancho_pantalla / 2) - (ancho_ventana / 2)) # --- Calcular coordenada x
+        y = int((alto_pantalla / 2) - (alto_ventana / 2)) # --- Calcular coordenada y
+        
+        self.ventana_form.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}") # --- Aplicar tamaño y posición
+        
+        # convertir la ventana en modal
+        self.ventana_form.transient(self.ventana) # --- Hacer que la ventana hija dependa de la ventana principal
+        self.ventana_form.grab_set() # --- Capturar todos los eventos en la ventana hija
+        self.ventana.focus_set() # --- Establecer el foco en la ventana principal
+        
         
         tk.Label(self.ventana_form, text="Refernecia", font="Arial 12", bg="#D1D3D5").place(x=15, y=20)
         self.entry_referen = tk.Entry(self.ventana_form, font="sans 12", width=40)
