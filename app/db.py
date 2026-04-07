@@ -8,7 +8,7 @@ def crear_tablas():
     conn = conectar()
     cursor = conn.cursor()
 
-    # TABLA secuencia para facturas
+    # 1. TABLA secuencia para facturas
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS configuracion (
         clave TEXT PRIMARY KEY,
@@ -20,8 +20,31 @@ def crear_tablas():
     INSERT OR IGNORE INTO configuracion (clave, valor)
     VALUES ('consecutivo_factura', '1')
     """)
+
+    # 2. TABLAS PADRE (No dependen de nadie)
     
-    # TABLA PROVEEDORES
+    # Tabla Clientes
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS clientes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        documento TEXT UNIQUE NOT NULL,
+        telefono TEXT
+    )
+    """)
+
+    # Tabla Productos
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS productos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        referencia TEXT UNIQUE NOT NULL,
+        precio REAL NOT NULL,
+        stock INTEGER NOT NULL
+    )
+    """)
+    
+    # Tabla Proveedores
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS proveedores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,8 +54,33 @@ def crear_tablas():
             nombre_vendedor TEXT
         )
     """)
+
+    # 3. TABLAS HIJAS Y NIETAS (Transacciones)
+
+    # Tabla Ventas (Encabezado)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ventas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_factura TEXT,
+            fecha TEXT,
+            total REAL,
+            cliente_id INTEGER
+        )
+    """)
+
+    # Tabla Detalle Venta
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS detalle_venta (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_venta INTEGER,
+        referencia TEXT,
+        cantidad INTEGER,
+        precio REAL,
+        subtotal REAL
+    )
+    """)
     
-    # TABLA COMPRAS (El encabezado de la factura)
+    # Tabla Compras (Encabezado)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS compras (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +91,7 @@ def crear_tablas():
         )
     """)
 
-    # TABLA DETALLE COMPRA (Los productos dentro de la factura)
+    # Tabla Detalle Compra
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS detalle_compra (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,11 +107,12 @@ def crear_tablas():
     conn.commit()
     conn.close()
     
+# --- FUNCIONES DE FACTURACIÓN (Se mantienen igual) ---
+
 def obtener_siguiente_factura():
     conn = conectar()
     cursor = conn.cursor()
 
-    # Obtener valor actual
     cursor.execute("""
     SELECT valor FROM configuracion
     WHERE clave = 'consecutivo_factura'
@@ -72,10 +121,8 @@ def obtener_siguiente_factura():
     resultado = cursor.fetchone()
     numero = int(resultado[0])
 
-    # Formatear factura
     factura = f"FAC-{numero:04d}"
 
-    # Actualizar siguiente número
     cursor.execute("""
     UPDATE configuracion
     SET valor = ?

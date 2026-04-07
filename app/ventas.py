@@ -1,42 +1,6 @@
 import sqlite3
 from datetime import datetime
-from db import obtener_siguiente_factura
-
-
-# 📌 Conexión
-def conectar():
-    return sqlite3.connect("database/data.db")
-
-
-# 📌 Crear tablas
-def crear_tablas():
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS ventas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero_factura TEXT,
-            fecha TEXT,
-            total REAL,
-            cliente_id INTEGER
-        )
-        """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS detalle_venta (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_venta INTEGER,
-        referencia TEXT,
-        cantidad INTEGER,
-        precio REAL,
-        subtotal REAL
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
+from db import conectar, obtener_siguiente_factura
 
 # 📌 Buscar cliente
 def obtener_cliente(documento):
@@ -84,35 +48,32 @@ def crear_venta(documento_cliente, productos_vendidos):
         cliente = obtener_cliente(documento_cliente)
 
         if cliente is None:
-            print("❌ Cliente no existe")
-            return False
+            return False # Le avisa a la UI que el cliente no existe
 
         cliente_id, nombre_cliente = cliente
 
-
+        # Validar stock y calcular total ANTES de registrar la venta
         for referencia, cantidad in productos_vendidos:
-
             producto = obtener_producto(referencia)
 
             if producto is None:
-                print(f"❌ Producto no existe: {referencia}")
                 continue
 
             nombre, precio, stock = producto
 
             if stock < cantidad:
-                print(f"❌ Stock insuficiente para {nombre}")
-                continue
+                return False # Le avisa a la UI que no hay stock suficiente
 
             subtotal = precio * cantidad
             total += subtotal
             
         if total == 0:
-            print("❌ No hay productos válidos para vender")
-            return False
+            return False # No hay productos válidos para vender
         
+        # Generar el número de factura
         numero_factura = obtener_siguiente_factura()
 
+        # Guardar encabezado de la venta
         cursor.execute("""
         INSERT INTO ventas (numero_factura, fecha, total, cliente_id)
         VALUES (?, ?, ?, ?)
@@ -120,8 +81,8 @@ def crear_venta(documento_cliente, productos_vendidos):
 
         id_venta = cursor.lastrowid
 
+        # Guardar el detalle de los productos y restar stock
         for referencia, cantidad in productos_vendidos:
-
             producto = obtener_producto(referencia)
 
             if producto is None:
@@ -144,13 +105,12 @@ def crear_venta(documento_cliente, productos_vendidos):
             actualizar_stock(cursor, referencia, cantidad)
 
         conn.commit()
-
-        print(f"✅ Venta realizada a {nombre_cliente}. Total: {total}")
-        return numero_factura
+        
+        # Si todo salió perfecto, retorna el número de factura para que la UI imprima el PDF
+        return numero_factura 
 
     except Exception as e:
-        conn.rollback()
-        print("❌ Error en la venta:", e)
+        conn.rollback() # Si algo falla en el proceso, cancela todo para no dañar la base de datos
         return False
 
     finally:
@@ -170,23 +130,5 @@ def ver_ventas():
 
     ventas = cursor.fetchall()
 
-    print("\n🧾 VENTAS CON CLIENTE:")
-    for v in ventas:
-        print(v)
-
     conn.close()
-
-
-# 🚀 PRUEBA
-if __name__ == "__main__":
-    crear_tablas()
-
-    productos = [
-        ("MART-001", 2),
-        ("CLAV-001", 5)
-    ]
-
-    # 👇 IMPORTANTE: usar documento del cliente
-    crear_venta("123456", productos)
-
-    ver_ventas()
+    return ventas

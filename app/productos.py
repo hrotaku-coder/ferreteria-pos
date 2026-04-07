@@ -1,29 +1,5 @@
 import sqlite3
-
-# 📌 Conexión a la base de datos
-def conectar():
-    conn = sqlite3.connect("database/data.db")
-    return conn
-
-
-# 📌 Crear tabla productos
-def crear_tabla():
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        referencia TEXT UNIQUE NOT NULL,
-        precio REAL NOT NULL,
-        stock INTEGER NOT NULL
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
+from db import conectar
 
 # 📌 Agregar producto
 def agregar_producto(nombre, referencia, precio, stock):
@@ -37,13 +13,13 @@ def agregar_producto(nombre, referencia, precio, stock):
         """, (nombre, referencia, precio, stock))
 
         conn.commit()
-        print("✅ Producto agregado correctamente")
+        return True  # Éxito: Le avisa a la ventana que se guardó correctamente
 
     except sqlite3.IntegrityError:
-        print("❌ Error: la referencia ya existe (debe ser única)")
+        return False # Error: La referencia ya existe
 
     finally:
-        conn.close()  # 🔥 ESTO SOLUCIONA EL BLOQUEO
+        conn.close()
 
 
 # 📌 Listar productos
@@ -55,8 +31,8 @@ def listar_productos():
     productos = cursor.fetchall()
 
     conn.close()
-
     return productos
+
 
 # 📌 Buscar producto por referencia
 def buscar_producto(referencia):
@@ -67,35 +43,27 @@ def buscar_producto(referencia):
     producto = cursor.fetchone()
 
     conn.close()
-
-    if producto:
-        print("\n🔍 PRODUCTO ENCONTRADO")
-        print(producto)
-    else:
-        print("❌ Producto no encontrado")
+    
+    return producto # Retorna la tupla con los datos, o None si no existe
 
 
-# 📌 Ejecutar prueba rápida
-if __name__ == "__main__":
-    crear_tabla()
-
-    # Pruebas
-    agregar_producto("Martillo", "MART-001", 15000, 10)
-    agregar_producto("Clavos", "CLAV-001", 5000, 50)
-
-    listar_productos()
-
-    buscar_producto("MART-001")
-
+# 📌 Actualizar producto
 def actualizar_producto(referencia_original, nombre, referencia, precio, stock):
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("""
-    UPDATE productos
-    SET nombre = ?, referencia = ?, precio = ?, stock = ?
-    WHERE referencia = ?
-    """, (nombre, referencia, precio, stock, referencia_original))
+    try:
+        cursor.execute("""
+        UPDATE productos
+        SET nombre = ?, referencia = ?, precio = ?, stock = ?
+        WHERE referencia = ?
+        """, (nombre, referencia, precio, stock, referencia_original))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        return True # Éxito al actualizar
+        
+    except sqlite3.IntegrityError:
+        return False # Error: Intenta poner una referencia que ya existe
+        
+    finally:
+        conn.close()

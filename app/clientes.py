@@ -1,27 +1,5 @@
 import sqlite3
-
-# 📌 Conexión
-def conectar():
-    return sqlite3.connect("database/data.db")
-
-
-# 📌 Crear tabla clientes
-def crear_tabla():
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS clientes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        documento TEXT UNIQUE NOT NULL,
-        telefono TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
+from db import conectar  # Importamos la conexión desde tu archivo central
 
 # 📌 Agregar cliente
 def agregar_cliente(nombre, documento, telefono):
@@ -35,10 +13,10 @@ def agregar_cliente(nombre, documento, telefono):
         """, (nombre, documento, telefono))
 
         conn.commit()
-        print("✅ Cliente agregado correctamente")
+        return True  # Le avisa a la interfaz que se guardó correctamente
 
     except sqlite3.IntegrityError:
-        print("❌ Error: ya existe un cliente con ese documento")
+        return False # Le avisa a la interfaz que el documento ya existe
 
     finally:
         conn.close()
@@ -49,49 +27,20 @@ def buscar_cliente(documento):
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("""
-    SELECT * FROM clientes WHERE documento = ?
-    """, (documento,))
-
+    cursor.execute("SELECT * FROM clientes WHERE documento = ?", (documento,))
     cliente = cursor.fetchone()
     conn.close()
 
-    if cliente:
-        print("\n🔍 CLIENTE ENCONTRADO:")
-        print(cliente)
-        return cliente
-    else:
-        print("❌ Cliente no encontrado")
-        return None
+    return cliente  # Retorna los datos o "None" si no existe
 
 
-# 📌 Listar clientes (🔥 CORREGIDO)
+# 📌 Listar clientes
 def listar_clientes():
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM clientes")
     clientes = cursor.fetchall()
-
     conn.close()
 
-    return clientes  # 🔥 ESTO ES LO IMPORTANTE
-
-
-# 🚀 PRUEBA
-if __name__ == "__main__":
-    crear_tabla()
-
-    # Pruebas
-    agregar_cliente("Juan Perez", "123456", "3001234567")
-    agregar_cliente("Empresa XYZ", "900123456", "3109876543")
-
-    lista = listar_clientes()
-
-    print("\n👤 LISTA DE CLIENTES")
-    print("-" * 40)
-
-    for c in lista:
-        print(f"ID: {c[0]} | Nombre: {c[1]} | Doc: {c[2]} | Tel: {c[3]}")
-
-    buscar_cliente("123456")
+    return clientes
