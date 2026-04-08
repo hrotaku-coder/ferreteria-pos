@@ -2,15 +2,15 @@ import sqlite3
 from db import conectar
 
 # 📌 Agregar producto
-def agregar_producto(nombre, referencia, precio, stock):
+def agregar_producto(nombre, referencia, precio1, precio2, stock):
     conn = conectar()
     cursor = conn.cursor()
 
     try:
         cursor.execute("""
-        INSERT INTO productos (nombre, referencia, precio, stock)
-        VALUES (?, ?, ?, ?)
-        """, (nombre, referencia, precio, stock))
+        INSERT INTO productos (nombre, referencia, precio1, precio2, stock)
+        VALUES (?, ?, ?, ?, ?)
+        """, (nombre, referencia, precio1, precio2 , stock))
 
         conn.commit()
         return True  # Éxito: Le avisa a la ventana que se guardó correctamente
@@ -48,16 +48,16 @@ def buscar_producto(referencia):
 
 
 # 📌 Actualizar producto
-def actualizar_producto(referencia_original, nombre, referencia, precio, stock):
+def actualizar_producto(referencia_original, nombre, referencia, precio1, precio2, stock):
     conn = conectar()
     cursor = conn.cursor()
 
     try:
         cursor.execute("""
         UPDATE productos
-        SET nombre = ?, referencia = ?, precio = ?, stock = ?
+        SET nombre = ?, referencia = ?, precio1 = ?, precio2 = ?, stock = ?
         WHERE referencia = ?
-        """, (nombre, referencia, precio, stock, referencia_original))
+        """, (nombre, referencia, precio1, precio2, stock, referencia_original))
 
         conn.commit()
         return True # Éxito al actualizar

@@ -15,11 +15,11 @@ def obtener_cliente(documento):
 
 
 # 📌 Obtener producto
-def obtener_producto(referencia):
+def obtener_producto(referencia): #
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT nombre, precio, stock FROM productos WHERE referencia = ?", (referencia,))
+    cursor.execute("SELECT nombre, precio1, precio2, stock FROM productos WHERE referencia = ?", (referencia,))
     producto = cursor.fetchone()
 
     conn.close()
@@ -53,17 +53,18 @@ def crear_venta(documento_cliente, productos_vendidos):
         cliente_id, nombre_cliente = cliente
 
         # Validar stock y calcular total ANTES de registrar la venta
-        for referencia, cantidad in productos_vendidos:
+        for referencia, cantidad, precio, tipo in productos_vendidos:
             producto = obtener_producto(referencia)
 
             if producto is None:
                 continue
 
-            nombre, precio, stock = producto
+            nombre, precio1, precio2, stock = producto
 
             if stock < cantidad:
                 return False # Le avisa a la UI que no hay stock suficiente
 
+            precio = precio1  # usamos precio1 como base temporal
             subtotal = precio * cantidad
             total += subtotal
             
@@ -82,14 +83,20 @@ def crear_venta(documento_cliente, productos_vendidos):
         id_venta = cursor.lastrowid
 
         # Guardar el detalle de los productos y restar stock
-        for referencia, cantidad in productos_vendidos:
+        for referencia, cantidad, precio, tipo in productos_vendidos:
             producto = obtener_producto(referencia)
 
             if producto is None:
                 continue
 
-            nombre, precio, stock = producto
+            nombre, _, _, stock = producto
 
+            if stock < cantidad:
+                return False
+
+            subtotal = precio * cantidad
+            total += subtotal
+            
             if stock < cantidad:
                 continue
 
@@ -97,9 +104,9 @@ def crear_venta(documento_cliente, productos_vendidos):
 
             # Guardar detalle
             cursor.execute("""
-            INSERT INTO detalle_venta (id_venta, referencia, cantidad, precio, subtotal)
-            VALUES (?, ?, ?, ?, ?)
-            """, (id_venta, referencia, cantidad, precio, subtotal))
+            INSERT INTO detalle_venta (id_venta, referencia, cantidad, precio_unitario, tipo_precio, subtotal)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (id_venta, referencia, cantidad, precio, tipo, subtotal))
 
             # Actualizar stock
             actualizar_stock(cursor, referencia, cantidad)

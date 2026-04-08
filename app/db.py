@@ -39,7 +39,8 @@ def crear_tablas():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         referencia TEXT UNIQUE NOT NULL,
-        precio REAL NOT NULL,
+        precio1 REAL NOT NULL,
+        precio2 REAL NOT NULL,
         stock INTEGER NOT NULL
     )
     """)
@@ -71,13 +72,14 @@ def crear_tablas():
     # Tabla Detalle Venta
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS detalle_venta (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_venta INTEGER,
-        referencia TEXT,
-        cantidad INTEGER,
-        precio REAL,
-        subtotal REAL
-    )
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_venta INTEGER,
+            referencia TEXT,
+            cantidad INTEGER,
+            precio_unitario REAL,
+            tipo_precio TEXT,
+            subtotal REAL
+        )
     """)
     
     # Tabla Compras (Encabezado)

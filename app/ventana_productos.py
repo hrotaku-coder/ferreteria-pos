@@ -111,19 +111,21 @@ class VentanaProductos:
         
         self.tabla = ttk.Treeview(self.frame_tabla)
 
-        self.tabla["columns"] = ("referencia", "nombre", "precio", "stock")
+        self.tabla["columns"] = ("referencia", "nombre", "precio1", "precio2", "stock")
 
         self.tabla.column("#0", width=0, stretch=tk.NO)
 
         self.tabla.column("referencia", anchor="w", width=150)
         self.tabla.column("nombre", anchor="w", width=300)
-        self.tabla.column("precio", anchor="e", width=100)
+        self.tabla.column("precio1", anchor="e", width=100)
+        self.tabla.column("precio2", anchor="e", width=100)
         self.tabla.column("stock", anchor="center", width=100)
 
         self.tabla.heading("#0", text="")
         self.tabla.heading("referencia", text="Referencia")
         self.tabla.heading("nombre", text="Nombre del Producto")
-        self.tabla.heading("precio", text="Precio")
+        self.tabla.heading("precio1", text="Precio 1")
+        self.tabla.heading("precio2", text="Precio 2")
         self.tabla.heading("stock", text="Stock")
 
         self.tabla.pack(fill="both", expand=True)
@@ -136,7 +138,7 @@ class VentanaProductos:
         self.ventana_form.configure(bg="#D1D3D5")
         
         ancho_ventana = 600
-        alto_ventana = 250
+        alto_ventana = 300
         
         ancho_pantalla = self.ventana_form.winfo_screenwidth() # --- Obtener ancho de pantalla
         alto_pantalla = self.ventana_form.winfo_screenheight() # --- Obtener alto de pantalla
@@ -160,13 +162,17 @@ class VentanaProductos:
         self.entry_producto = tk.Entry(self.ventana_form, font="sans 12", width=40)
         self.entry_producto.place(x=15, y=90)
         
-        tk.Label(self.ventana_form, text="Precio", font="Arial 12", bg="#D1D3D5").place(x=15, y=120)
-        self.entry_precio = tk.Entry(self.ventana_form, font="sans 12", width=40)
-        self.entry_precio.place(x=15, y=140)
+        tk.Label(self.ventana_form, text="Precio 1", font="Arial 12", bg="#D1D3D5").place(x=15, y=120)
+        self.entry_precio1 = tk.Entry(self.ventana_form, font="sans 12", width=40)
+        self.entry_precio1.place(x=15, y=140)
         
-        tk.Label(self.ventana_form, text="Stock", font="Arial 12", bg="#D1D3D5").place(x=15, y=170)
+        tk.Label(self.ventana_form, text="Precio 2", font="Arial 12", bg="#D1D3D5").place(x=15, y=170)
+        self.entry_precio2 = tk.Entry(self.ventana_form, font="sans 12", width=40)
+        self.entry_precio2.place(x=15, y=190)
+        
+        tk.Label(self.ventana_form, text="Stock", font="Arial 12", bg="#D1D3D5").place(x=15, y=220)
         self.entry_stock = tk.Entry(self.ventana_form, font="sans 12", width=40)
-        self.entry_stock.place(x=15, y=190)
+        self.entry_stock.place(x=15, y=240)
         
         self.btn_guardar = tk.Button(
             self.ventana_form,
@@ -182,28 +188,30 @@ class VentanaProductos:
     def guardar_producto(self):
         referencia = self.entry_referen.get()
         nombre = self.entry_producto.get()
-        precio = self.entry_precio.get()
+        precio1 = self.entry_precio1.get()
+        precio2 = self.entry_precio2.get()
         stock = self.entry_stock.get()
         
-        if not referencia or not nombre or not precio or not stock:
-            print("⚠️ Todos los campos son obligatorios")
+        if not referencia or not nombre or not precio1 or not precio2 or not stock: #-- Validar que no haya campos vacíos
+            messagebox.showwarning("Campos vacíos", "Por favor, completa todos los campos")
             return
     
-        try:
-            precio = float(precio)
+        try:                          #-- Validar que los precios sean números válidos y el stock sea un entero  
+            precio1 = float(precio1)
+            precio2 = float(precio2)
             stock = int(stock)
         except ValueError:
-            print("⚠️ Precio o stock inválidos")
+            messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos para los precios y el stock")
             return
         
-        if hasattr(self, "modo_edicion") and self.modo_edicion:
-            productos.actualizar_producto(self.referencia_original, nombre, referencia, precio, stock)
-            print("✏️ Producto actualizado")
+        if hasattr(self, "modo_edicion") and self.modo_edicion:     #-- Si estamos en modo edición, actualizar el producto existente
+            productos.actualizar_producto(self.referencia_original, nombre, referencia, precio1, precio2, stock)
+            messagebox.showinfo("Producto actualizado", "El producto ha sido actualizado correctamente")
             self.modo_edicion = False
         else:
-            productos.agregar_producto(nombre, referencia, precio, stock)
-            print("✅ Producto guardado correctamente")
-        
+            productos.agregar_producto(nombre, referencia, precio1, precio2, stock)
+            messagebox.showinfo("Producto agregado", "El producto ha sido agregado correctamente")
+
         self.cargar_productos()
         self.ventana_form.destroy()
         
@@ -215,14 +223,16 @@ class VentanaProductos:
         lista = productos.listar_productos()
 
         for p in lista:
-            id_, nombre, referencia, precio, stock = p
+            id_, nombre, referencia, precio1, precio2, stock = p
 
             self.tabla.insert("", "end", values=(
                 referencia,
                 nombre,
-                precio,
+                precio1,
+                precio2,
                 stock
             ))
+            
 
     def obtener_producto_seleccionado(self):
         seleccion = self.tabla.focus()
@@ -240,60 +250,58 @@ class VentanaProductos:
         if not datos:
             return
 
-        referencia, nombre, precio, stock = datos
+        referencia, nombre, precio1, precio2, stock = datos
 
         self.abrir_formulario_producto()
 
         self.entry_referen.insert(0, referencia)
         self.entry_producto.insert(0, nombre)
-        self.entry_precio.insert(0, precio)
+        self.entry_precio1.insert(0, precio1)
+        self.entry_precio2.insert(0, precio2)
         self.entry_stock.insert(0, stock)
 
         self.modo_edicion = True
         self.referencia_original = referencia
 
-
     def importar_productos(self):
+        # 1. Abrir la ventana para elegir solo archivos Excel
         ruta = filedialog.askopenfilename(
-            title="Seleccionar archivo",
-            filetypes=(
-                ("Archivos Excel", "*.xlsx"),
-                ("Archivos CSV", "*.csv"),
-                ("Todos los archivos", "*.*")
-            )
+            title="Seleccionar archivo Excel",
+            filetypes=(("Archivos Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
         )
 
         if not ruta:
-            return
+            return # El usuario canceló la ventana
 
-        print("Archivo seleccionado:", ruta)
+        # 2. Leer el archivo Excel directamente
+        try:
+            libro = load_workbook(ruta)
+            hoja = libro.active
 
-        if ruta.endswith(".xlsx"):
-            self.importar_excel(ruta)
-        elif ruta.endswith(".csv"):
-            self.importar_csv(ruta)
+            # Leer desde la fila 2 para saltarse tus encabezados
+            for fila in hoja.iter_rows(min_row=2, values_only=True):
+                # Validar que la fila no esté completamente vacía
+                if fila[0] is None: 
+                    continue
+                    
+                try:
+                    # Ajustado a tu orden exacto: Referencia(0), Nombre(1), Precio1(2), Precio2(3), Stock(4)
+                    referencia = str(fila[0])
+                    nombre = str(fila[1])
+                    precio1 = float(fila[2])
+                    precio2 = float(fila[3])
+                    stock = int(fila[4])
 
-        self.cargar_productos()
-        print("✅ Importación completada")
+                    productos.agregar_producto(nombre, referencia, precio1, precio2, stock)
+                except Exception as e:
+                    print("Fila ignorada por formato incorrecto:", fila)
 
-    def importar_excel(self, ruta):
-        libro = load_workbook(ruta)
-        hoja = libro.active
+            # 3. Actualizar la tabla visual y avisar
+            self.cargar_productos()
+            messagebox.showinfo("Importación completada", "Los productos han sido importados correctamente desde tu Excel.")
 
-        for fila in hoja.iter_rows(min_row=2, values_only=True):
-            try:
-                nombre = fila[0]
-                referencia = fila[1]
-                precio = float(fila[2])
-                stock = int(fila[3])
-
-                productos.agregar_producto(nombre, referencia, precio, stock)
-
-            except Exception as e:
-                print("Error en fila:", fila, e)
-
-        self.cargar_productos()
-        print("✅ Importación desde Excel completada")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo leer el archivo Excel: {e}")
 
     def filtrar_productos(self, event):
         texto = self.combo_buscarproducto.get().lower()
@@ -304,31 +312,16 @@ class VentanaProductos:
         lista = productos.listar_productos()
 
         for p in lista:
-            id_, nombre, referencia, precio, stock = p
+            id_, nombre, referencia, precio1, precio2, stock = p
 
             if texto in nombre.lower() or texto in referencia.lower():
                 self.tabla.insert("", "end", values=(
                     referencia,
                     nombre,
-                    precio,
+                    precio1,
+                    precio2,
                     stock
                 ))
-                
-    def importar_csv(self, ruta):
-        with open(ruta, newline='', encoding='utf-8') as archivo:
-            lector = csv.reader(archivo)
-
-            for fila in lector:
-                try:
-                    nombre = fila[0]
-                    referencia = fila[1]
-                    precio = float(fila[2])
-                    stock = int(fila[3])
-
-                    productos.agregar_producto(nombre, referencia, precio, stock)
-
-                except Exception as e:
-                    print("Error en fila:", fila, e)
                     
     def eliminar_producto(self):
         datos = self.obtener_producto_seleccionado()

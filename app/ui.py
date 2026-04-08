@@ -161,6 +161,22 @@ class VentanaVenta:
         self.entry_stock = ttk.Entry(self.frame_busqueda, font="sans 12", width=6)
         self.entry_stock.grid(row=0, column=5,padx=5, pady=5, sticky="w")
         
+        # 🔥 TIPO DE PRECIO
+        self.tipo_precio = tk.StringVar(value="precio1")
+
+        self.combo_tipo_precio = ttk.Combobox(
+            self.frame_busqueda,
+            textvariable=self.tipo_precio,
+            values=["precio1", "precio2", "manual"],
+            width=10,
+            state="readonly"
+        )
+        self.combo_tipo_precio.grid(row=0, column=6, padx=5, pady=5)
+
+        # 🔥 PRECIO MANUAL
+        self.entry_precio_manual = ttk.Entry(self.frame_busqueda, width=10)
+        self.entry_precio_manual.grid(row=0, column=7, padx=5, pady=5)
+        
         self.btn_agregar = tk.Button(
             self.frame_busqueda,
             text="Agregar",
@@ -170,7 +186,7 @@ class VentanaVenta:
             command=self.agregar_y_reset
         )
 
-        self.btn_agregar.grid(row=0, column=6, padx=5, pady=5)
+        self.btn_agregar.grid(row=0, column=8, padx=5, pady=5)
         
         self.btn_agregar.bind("<Return>", lambda e: self.agregar_y_reset())
         
@@ -190,7 +206,7 @@ class VentanaVenta:
         
         self.tabla = ttk.Treeview(self.frame_tabla)
 
-        self.tabla["columns"] = ("referencia", "producto", "cantidad", "valor", "total")
+        self.tabla["columns"] = ("referencia", "producto", "cantidad", "valor", "tipo", "total")
 
         self.tabla.column("#0", width=0, stretch=NO)
 
@@ -198,6 +214,7 @@ class VentanaVenta:
         self.tabla.column("producto", anchor="w", width=400)
         self.tabla.column("cantidad", anchor="center", width=80)
         self.tabla.column("valor", anchor="e", width=80)
+        self.tabla.column("tipo", anchor="center", width=100)
         self.tabla.column("total", anchor="e", width=80)
 
         self.tabla.heading("#0", text="")
@@ -205,6 +222,7 @@ class VentanaVenta:
         self.tabla.heading("producto", text="Producto")
         self.tabla.heading("cantidad", text="Cantidad")
         self.tabla.heading("valor", text="Valor")
+        self.tabla.heading("tipo", text="Tipo")
         self.tabla.heading("total", text="Total")
 
         self.tabla.pack(fill="both", expand=True)
@@ -263,14 +281,15 @@ class VentanaVenta:
         self.productos_dict = {}
 
         for p in lista_productos:
-            id_, nombre, referencia, precio, stock = p
+            id_, nombre, referencia, precio1, precio2, stock = p
 
             self.lista_productos.append(nombre)
 
             # guardamos todo para usar después
             self.productos_dict[nombre] = {
                 "referencia": referencia,
-                "precio": precio,
+                "precio1": precio1,
+                "precio2": precio2,
                 "stock": stock
             }
 
@@ -283,14 +302,16 @@ class VentanaVenta:
             datos = self.productos_dict[nombre]
 
             stock = datos["stock"]
-            precio = datos["precio"]
+            precio1 = datos["precio1"]
+            precio2 = datos["precio2"]
 
             # STOCK
             self.entry_stock.delete(0, tk.END)
             self.entry_stock.insert(0, stock)
 
             # 👉 NUEVO: guardar precio en memoria
-            self.precio_actual = precio
+            self.precio1_actual = precio1
+            self.precio2_actual = precio2
             
     def seleccionar_y_continuar_producto(self, event):
         self.seleccionar_producto(event)
@@ -350,7 +371,23 @@ class VentanaVenta:
         datos = self.productos_dict[nombre]
 
         referencia = datos["referencia"]
-        precio = datos["precio"]
+        
+        precio1 = datos["precio1"]
+        precio2 = datos["precio2"]
+
+        tipo = self.tipo_precio.get()
+
+        if tipo == "precio1":
+            precio = precio1
+        elif tipo == "precio2":
+            precio = precio2
+        else:
+            try:
+                precio = float(self.entry_precio_manual.get())
+            except:
+                messagebox.showerror("Error", "Precio manual inválido")
+                return
+        
         stock = datos["stock"]
 
         # 🔥 BUSCAR SI YA EXISTE EN LA TABLA
@@ -388,11 +425,14 @@ class VentanaVenta:
 
         total = cantidad * precio
 
+        tipo = self.tipo_precio.get()
+
         self.tabla.insert("", "end", values=(
             referencia,
             nombre,
             cantidad,
             precio,
+            tipo,
             total
         ))
 
@@ -404,6 +444,7 @@ class VentanaVenta:
         # reset cantidad
         self.entry_cantidad.delete(0, tk.END)
         self.entry_cantidad.insert(0, "1")
+        self.entry_precio_manual.delete(0, tk.END)
 
         # limpiar producto
         self.combo_producto.set("")
@@ -420,10 +461,9 @@ class VentanaVenta:
         for item in self.tabla.get_children():
             valores = self.tabla.item(item, "values")
 
-            subtotal = float(valores[4])  # columna total
+            subtotal = float(valores[5])  # ✅ ahora sí
             total += subtotal
 
-        # mostrar en pantalla
         self.lbl_total_valor.config(text=f"$ {int(total)}")
 
     def cobrar(self):
@@ -446,10 +486,12 @@ class VentanaVenta:
             nombre = valores[1]
             cantidad = int(valores[2])
             precio = float(valores[3])
-            subtotal = float(valores[4])
+            tipo = valores[4]
+            subtotal = float(valores[5])
 
             # Lista simple para tu función ventas.crear_venta()
-            productos_bd.append((referencia, cantidad))
+            #tipo = self.tipo_precio.get() REVISAR SI ESTO FUNCIONA BIEN, O SI DEBERÍA GUARDAR EL TIPO DE PRECIO EN LA TABLA DESDE EL PRINCIPIO
+            productos_bd.append((referencia, cantidad, precio, tipo))
             
             # Lista completa para que el PDF se vea bien
             productos_pdf.append((referencia, nombre, cantidad, precio, subtotal))

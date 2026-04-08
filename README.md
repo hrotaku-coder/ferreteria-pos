@@ -31,3 +31,6 @@ git status
 📜 VER HISTORIAL
 git log
 
+06_04_2026 v1.0 se modifico los archivos clientes.py, productos.py y ventas.py se limpio codigo quitando pruebas y las tablas ya no las genera aqui
+                en el archivo db.py se la modifico para creara las tablas
+
