@@ -1,6 +1,5 @@
-print("SE ESTA EJECUTANDO MENU.PY")
-
 import tkinter as tk
+from tkinter import messagebox
 from PIL import Image, ImageTk
 
 from ui import VentanaVenta
@@ -31,105 +30,43 @@ class VentanaMenu:
         # Aplicar tamaño y posición
         self.ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
         
-        ANCHO_BOTON = 20
-        ALTO_BOTON = 2
+        self.crear_boton("Crear Factura", "iconos/nuevaventa.png", self.abrir_venta)
+        self.crear_boton("Productos", "iconos/producto.png", self.abrir_productos)
+        self.crear_boton("Reportes", "iconos/reportes.png", self.abrir_reportes)
+        self.crear_boton("Registrar Compra", "iconos/compras.png", self.abrir_compras)
         
-        ruta_icono = "iconos/nuevaventa.png"
-        
-        img = Image.open(ruta_icono)
-        img = img.resize((70, 70))
-        self.icono_factura = ImageTk.PhotoImage(img)
+    def crear_boton(self, texto, ruta_icono, comando):
+        frame = tk.Frame(self.ventana)
+        frame.pack(pady=20)
 
-        # contenedor
-        frame_venta = tk.Frame(self.ventana)
-        frame_venta.pack(pady=20)
+        try:
+            img = Image.open(ruta_icono).resize((70, 70))
+            icono = ImageTk.PhotoImage(img)
+        except:
+            icono = None
 
-        # icono
-        self.lbl_icono_factura = tk.Label(frame_venta, image=self.icono_factura)
-        self.lbl_icono_factura.grid(row=0, column=0, padx=10, pady=15)
+        label_icono = tk.Label(frame, image=icono)
+        label_icono.image = icono  # IMPORTANTE para que no desaparezca
+        label_icono.grid(row=0, column=0, padx=10)
 
-        # botón
-        self.btn_factura = tk.Button(
-            frame_venta,
-            text="Crear Factura",
+        boton = tk.Button(
+            frame,
+            text=texto,
             font="Arial 10 bold",
-            width=ANCHO_BOTON,
-            height=ALTO_BOTON,
-            command=self.abrir_venta
+            width=20,
+            height=2,
+            command=comando
         )
-        self.btn_factura.grid(row=0, column=1, padx=10)
+        boton.grid(row=0, column=1, padx=10)
         
-        ruta_icono2 = "iconos/producto.png"
-        
-        img2 = Image.open(ruta_icono2)
-        img2 = img2.resize((70, 70))
-        self.icono_producto = ImageTk.PhotoImage(img2)
-        
-        frame_producto = tk.Frame(self.ventana)
-        frame_producto.pack(pady=20)
-        
-        self.lbl_icono_producto =tk.Label(frame_producto, image=self.icono_producto)
-        self.lbl_icono_producto.grid(row=0, column=0, padx=10, pady=15)
-        
-        self.btn_producto = tk.Button(
-            frame_producto,
-            text="Productos",
-            font="Arial 10 bold",
-            width=ANCHO_BOTON,
-            height=ALTO_BOTON,
-            command=self.abrir_productos  
-        ) 
-        self.btn_producto.grid(row=0, column=1, padx=10)
-        
-        ruta_icono3 = "iconos/reportes.png"
-        
-        img3 = Image.open(ruta_icono3)
-        img3 = img3.resize((70, 70))
-        self.icono_reporte = ImageTk.PhotoImage(img3)
-        
-        frame_reporte = tk.Frame(self.ventana)
-        frame_reporte.pack(pady=20)
-        
-        self.lbl_icono_reporte =tk.Label(frame_reporte, image=self.icono_reporte)
-        self.lbl_icono_reporte.grid(row=0, column=0, padx=10, pady=15)
-        
-        self.btn_reporte = tk.Button(
-            frame_reporte,
-            text="Reportes",
-            font="Arial 10 bold",
-            width=ANCHO_BOTON,
-            height=ALTO_BOTON
-        ) 
-        self.btn_reporte.grid(row=0, column=1, padx=10)
-        
-        # --- BOTÓN DE COMPRAS ---
-        frame_compras = tk.Frame(self.ventana)
-        frame_compras.pack(pady=10) # Separa un poco los botones
-        
-        # (Opcional) Si luego descargas un ícono para compras, lo pones aquí
-        ruta_icono_compras = "iconos/compras.png"
-        img_compra = Image.open(ruta_icono_compras).resize((70, 70))
-        self.icono_compra = ImageTk.PhotoImage(img_compra)
-        tk.Label(frame_compras, image=self.icono_compra).grid(row=0, column=0, padx=10)
-        
-        self.btn_compras = tk.Button(
-            frame_compras,
-            text="Registrar Compra",
-            font="Arial 10 bold",
-            width=ANCHO_BOTON,
-            height=ALTO_BOTON,
-            command=self.abrir_compras # Llama a la función que vamos a crear
-        ) 
-        # Si pusiste ícono, cambia el column a 1. Si no hay ícono, déjalo en 0.
-        self.btn_compras.grid(row=0, column=1, padx=10)
-        
+                
     def abrir_venta(self):
         # 1. Ocultar la ventana del menú principal
         self.ventana.withdraw()
         
         # 2. Crear y abrir la ventana de ventas
         ventana_venta = tk.Toplevel(self.ventana)
-        aplicacion = VentanaVenta(ventana_venta)
+        VentanaVenta(ventana_venta)
         
         # 3. Función interna para restaurar el menú al cerrar
         def al_cerrar_venta():
@@ -145,7 +82,7 @@ class VentanaMenu:
         
         # 2. Crear y abrir la ventana de productos
         ventana_prod = tk.Toplevel(self.ventana)
-        aplicacion = VentanaProductos(ventana_prod)
+        VentanaProductos(ventana_prod)
         
         # 3. Función interna para restaurar el menú al cerrar
         def al_cerrar_productos():
@@ -161,7 +98,7 @@ class VentanaMenu:
         
         # 2. Crear y abrir la ventana de compras
         ventana_compra = tk.Toplevel(self.ventana)
-        aplicacion = VentanaCompras(ventana_compra)
+        VentanaCompras(ventana_compra)
         
         # 3. Función interna para restaurar el menú al cerrar
         def al_cerrar_compras():
@@ -170,6 +107,9 @@ class VentanaMenu:
             
         # 4. Detectar cuando se presiona la "X" de la ventana
         ventana_compra.protocol("WM_DELETE_WINDOW", al_cerrar_compras)
+        
+    def abrir_reportes(self):
+        messagebox.showinfo("Reportes", "Funcionalidad de reportes en desarrollo.")
         
 
 

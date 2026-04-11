@@ -125,7 +125,7 @@ def crear_venta(documento_cliente, productos_vendidos):
 
 
 # 📌 Ver ventas con cliente
-def ver_ventas():
+def ver_ventas(): # Esta función es para mostrar un listado de ventas en la UI, con el nombre del cliente en lugar de su ID
     conn = conectar()
     cursor = conn.cursor()
 

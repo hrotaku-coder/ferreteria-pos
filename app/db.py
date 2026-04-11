@@ -1,7 +1,9 @@
 import sqlite3
 
 def conectar():
-    return sqlite3.connect("database/data.db")
+    conn = sqlite3.connect("database/data.db")
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def crear_tablas():
@@ -62,23 +64,26 @@ def crear_tablas():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ventas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero_factura TEXT,
+            numero_factura TEXT UNIQUE,
             fecha TEXT,
             total REAL,
-            cliente_id INTEGER
+            cliente_id INTEGER,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id)
         )
     """)
 
     # Tabla Detalle Venta
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS detalle_venta (
+        CREATE TABLE IF NOT EXISTS detalle_venta (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             id_venta INTEGER,
             referencia TEXT,
             cantidad INTEGER,
             precio_unitario REAL,
             tipo_precio TEXT,
-            subtotal REAL
+            subtotal REAL,
+            FOREIGN KEY (id_venta) REFERENCES ventas(id),
+            FOREIGN KEY (referencia) REFERENCES productos(referencia)
         )
     """)
     
@@ -89,7 +94,8 @@ def crear_tablas():
             fecha TEXT,
             total REAL,
             proveedor_id INTEGER,
-            numero_factura_proveedor TEXT
+            numero_factura_proveedor TEXT,
+            FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
         )
     """)
 
@@ -102,7 +108,8 @@ def crear_tablas():
             cantidad INTEGER,
             precio_costo REAL,
             subtotal REAL,
-            FOREIGN KEY (id_compra) REFERENCES compras(id)
+            FOREIGN KEY (id_compra) REFERENCES compras(id),
+            FOREIGN KEY (referencia) REFERENCES productos(referencia)
         )
     """)
 
@@ -121,7 +128,11 @@ def obtener_siguiente_factura():
     """)
     
     resultado = cursor.fetchone()
-    numero = int(resultado[0])
+
+    if resultado is None:
+        numero = 1
+    else:
+        numero = int(resultado[0])
 
     factura = f"FAC-{numero:04d}"
 
@@ -146,7 +157,11 @@ def ver_siguiente_factura():
     """)
 
     resultado = cursor.fetchone()
-    numero = int(resultado[0])
+
+    if resultado is None:
+        numero = 1
+    else:
+        numero = int(resultado[0])
 
     conn.close()
 

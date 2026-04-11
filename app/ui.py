@@ -309,9 +309,6 @@ class VentanaVenta:
             self.entry_stock.delete(0, tk.END)
             self.entry_stock.insert(0, stock)
 
-            # 👉 NUEVO: guardar precio en memoria
-            self.precio1_actual = precio1
-            self.precio2_actual = precio2
             
     def seleccionar_y_continuar_producto(self, event):
         self.seleccionar_producto(event)
@@ -412,6 +409,7 @@ class VentanaVenta:
                     nombre,
                     nueva_cantidad,
                     precio,
+                    tipo,
                     nuevo_total
                 ))
 
