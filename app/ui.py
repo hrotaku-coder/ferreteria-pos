@@ -1,8 +1,6 @@
-from tkinter import *
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from datetime import datetime
-from tkinter import messagebox
 import os
 from factura_pdf import generar_pdf
 
@@ -43,7 +41,8 @@ class VentanaVenta:
             text="Nueva Venta F1",
             font=("Arial", 11),
             bd=2,
-            relief="raised"
+            relief="raised",
+            command=self.nueva_venta
         )
 
         self.btn_nueva.pack(side="left", padx=10, pady=10)
@@ -115,9 +114,8 @@ class VentanaVenta:
         )        
         self.entry_factura.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        self.numero_factura = ver_siguiente_factura()
         self.entry_factura.config(state="normal")
-        self.entry_factura.insert(0, self.numero_factura)
+        self.entry_factura.insert(0, "PENDIENTE")
         self.entry_factura.config(state="readonly")
         
         self.lbl_fecha = tk.Label(self.frame_informacionfactura, text="Fecha:", font="Arial 12", bg="#D1D3D5")
@@ -171,10 +169,13 @@ class VentanaVenta:
             width=10,
             state="readonly"
         )
+        
+        self.combo_tipo_precio.bind("<<ComboboxSelected>>", self.cambiar_tipo_precio)
+        
         self.combo_tipo_precio.grid(row=0, column=6, padx=5, pady=5)
 
         # 🔥 PRECIO MANUAL
-        self.entry_precio_manual = ttk.Entry(self.frame_busqueda, width=10)
+        self.entry_precio_manual = ttk.Entry(self.frame_busqueda, width=10, state="disabled")
         self.entry_precio_manual.grid(row=0, column=7, padx=5, pady=5)
         
         self.btn_agregar = tk.Button(
@@ -208,7 +209,7 @@ class VentanaVenta:
 
         self.tabla["columns"] = ("referencia", "producto", "cantidad", "valor", "tipo", "total")
 
-        self.tabla.column("#0", width=0, stretch=NO)
+        self.tabla.column("#0", width=0, stretch=tk.NO)
 
         self.tabla.column("referencia", anchor="w", width=100)
         self.tabla.column("producto", anchor="w", width=400)
@@ -266,10 +267,9 @@ class VentanaVenta:
 
         self.btn_cobrar.pack(side="top", pady=5)
         
+        self.ventana.bind("<F1>", self.nueva_venta_evento)
         self.ventana.bind("<F2>", self.atajo_crear_cliente)
-        
         self.ventana.bind("<Delete>", self.eliminar_producto_evento)
-        
         self.ventana.bind("<F3>", self.cobrar_evento)
         
         self.ventana.after(100, lambda: self.combo_nit.focus())
@@ -379,10 +379,26 @@ class VentanaVenta:
         elif tipo == "precio2":
             precio = precio2
         else:
+            precio_texto = self.entry_precio_manual.get()
+
+            # ❌ vacío
+            if not precio_texto:
+                messagebox.showerror("Error", "Debes ingresar un precio manual")
+                self.entry_precio_manual.focus()
+                return
+
+            # ❌ no numérico
             try:
-                precio = float(self.entry_precio_manual.get())
-            except:
+                precio = float(precio_texto)
+            except ValueError:
                 messagebox.showerror("Error", "Precio manual inválido")
+                self.entry_precio_manual.focus()
+                return
+
+            # ❌ menor o igual a 0
+            if precio <= 0:
+                messagebox.showerror("Error", "El precio debe ser mayor a 0")
+                self.entry_precio_manual.focus()
                 return
         
         stock = datos["stock"]
@@ -392,9 +408,13 @@ class VentanaVenta:
             valores = self.tabla.item(item, "values")
 
             ref_tabla = valores[0]
+            tipo_tabla = valores[4]  # 🔥 nuevo
             cantidad_tabla = int(valores[2])
 
-            if ref_tabla == referencia:
+            # 🔥 ahora compara referencia + tipo de precio
+            precio_tabla = float(valores[3])
+
+            if ref_tabla == referencia and tipo_tabla == tipo and precio_tabla == precio:
                 nueva_cantidad = cantidad_tabla + cantidad
 
                 # ❌ VALIDAR STOCK
@@ -487,8 +507,7 @@ class VentanaVenta:
             tipo = valores[4]
             subtotal = float(valores[5])
 
-            # Lista simple para tu función ventas.crear_venta()
-            #tipo = self.tipo_precio.get() REVISAR SI ESTO FUNCIONA BIEN, O SI DEBERÍA GUARDAR EL TIPO DE PRECIO EN LA TABLA DESDE EL PRINCIPIO
+
             productos_bd.append((referencia, cantidad, precio, tipo))
             
             # Lista completa para que el PDF se vea bien
@@ -499,10 +518,18 @@ class VentanaVenta:
             messagebox.showwarning("Sin productos", "No hay productos en la venta")
             return
 
+        numero_factura = obtener_siguiente_factura()
+        
         # 🔥 GUARDAR EN BD
-        resultado = ventas.crear_venta(documento, productos_bd)
+        resultado = ventas.crear_venta(numero_factura, documento, productos_bd)
 
         if resultado:
+            self.cargar_productos()
+            
+            self.entry_factura.config(state="normal")
+            self.entry_factura.delete(0, tk.END)
+            self.entry_factura.insert(0, numero_factura)
+            self.entry_factura.config(state="readonly")
             # 🔥 GENERAR EL PDF
             try:
                 ruta_pdf = generar_pdf(resultado, documento, nombre_cliente, productos_pdf, total_venta)
@@ -540,13 +567,18 @@ class VentanaVenta:
         self.lbl_total_valor.config(text="$ 0")
         
         # aumentar número de factura
-        self.numero_factura = ver_siguiente_factura()
         self.entry_factura.config(state="normal")
         self.entry_factura.delete(0, tk.END)
-        self.entry_factura.insert(0, self.numero_factura)
+        self.entry_factura.insert(0, "PENDIENTE")
         self.entry_factura.config(state="readonly")
-        
+                
         self.ventana.after(100, lambda: self.combo_nit.focus())
+        
+    def nueva_venta(self):
+        respuesta = messagebox.askyesno("Confirmar", "¿Deseas iniciar una nueva venta?")
+
+        if respuesta:
+            self.limpiar_venta()
  
     def cargar_clientes(self):
         lista = clientes.listar_clientes()
@@ -693,7 +725,19 @@ class VentanaVenta:
         
     def agregar_producto_evento(self, event):
         self.agregar_y_reset()
+        
+    def nueva_venta_evento(self, event):
+        self.nueva_venta()
 
+    def cambiar_tipo_precio(self, event):
+        tipo = self.tipo_precio.get()
+
+        if tipo == "manual":
+            self.entry_precio_manual.config(state="normal")
+            self.entry_precio_manual.focus()
+        else:
+            self.entry_precio_manual.delete(0, tk.END)
+            self.entry_precio_manual.config(state="disabled")
         
 # Ventana principal
 if __name__ == "__main__":

@@ -25,18 +25,30 @@ def obtener_producto(referencia): #
     conn.close()
     return producto
 
+def obtener_producto_cursor(cursor, referencia):
+    cursor.execute("""
+    SELECT nombre, precio1, precio2, stock
+    FROM productos
+    WHERE referencia = ?
+    """, (referencia,))
+    
+    return cursor.fetchone()
+
 
 # 📌 Actualizar stock
 def actualizar_stock(cursor, referencia, cantidad):
     cursor.execute("""
     UPDATE productos
     SET stock = stock - ?
-    WHERE referencia = ?
-    """, (cantidad, referencia))
+    WHERE referencia = ? AND stock >= ?
+    """, (cantidad, referencia, cantidad))
+
+    if cursor.rowcount == 0:
+        raise Exception("Stock insuficiente al actualizar")
 
 
 # 📌 Crear venta con cliente
-def crear_venta(documento_cliente, productos_vendidos):
+def crear_venta(numero_factura, documento_cliente, productos_vendidos):
     conn = conectar()
     cursor = conn.cursor()
 
@@ -54,7 +66,7 @@ def crear_venta(documento_cliente, productos_vendidos):
 
         # Validar stock y calcular total ANTES de registrar la venta
         for referencia, cantidad, precio, tipo in productos_vendidos:
-            producto = obtener_producto(referencia)
+            producto = obtener_producto_cursor(cursor, referencia)
 
             if producto is None:
                 continue
@@ -64,15 +76,11 @@ def crear_venta(documento_cliente, productos_vendidos):
             if stock < cantidad:
                 return False # Le avisa a la UI que no hay stock suficiente
 
-            precio = precio1  # usamos precio1 como base temporal
             subtotal = precio * cantidad
             total += subtotal
             
         if total == 0:
             return False # No hay productos válidos para vender
-        
-        # Generar el número de factura
-        numero_factura = obtener_siguiente_factura()
 
         # Guardar encabezado de la venta
         cursor.execute("""
@@ -84,21 +92,12 @@ def crear_venta(documento_cliente, productos_vendidos):
 
         # Guardar el detalle de los productos y restar stock
         for referencia, cantidad, precio, tipo in productos_vendidos:
-            producto = obtener_producto(referencia)
+            producto = obtener_producto_cursor(cursor, referencia)
 
             if producto is None:
                 continue
 
             nombre, _, _, stock = producto
-
-            if stock < cantidad:
-                return False
-
-            subtotal = precio * cantidad
-            total += subtotal
-            
-            if stock < cantidad:
-                continue
 
             subtotal = precio * cantidad
 
