@@ -350,7 +350,7 @@ class VentanaProductos:
 
 
             
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = VentanaProductos(root)
-    root.mainloop()
+#if __name__ == "__main__":
+#    root = tk.Tk()
+#    app = VentanaProductos(root)
+#    root.mainloop()

@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 import os
 from factura_pdf import generar_pdf
+from ticket import imprimir_ticket, generar_texto_ticket
 
 from db import obtener_siguiente_factura
 from db import ver_siguiente_factura
@@ -469,6 +470,9 @@ class VentanaVenta:
 
         # limpiar stock
         self.entry_stock.delete(0, tk.END)
+        
+        # RESET TIPO DE PRECIO
+        self.tipo_precio.set("precio1")
 
         # volver al buscador
         self.combo_producto.focus()
@@ -534,10 +538,6 @@ class VentanaVenta:
             try:
                 ruta_pdf = generar_pdf(resultado, documento, nombre_cliente, productos_pdf, total_venta)
                 
-                # Esto abre el PDF automáticamente en la pantalla de tu computadora (Windows)
-                ruta_absoluta = os.path.abspath(ruta_pdf)
-                os.startfile(ruta_absoluta) 
-                
             except Exception as e:
                 messagebox.showerror("Error PDF", f"Venta guardada, pero falló el PDF: {e}")
 
@@ -545,6 +545,38 @@ class VentanaVenta:
         else:
             messagebox.showerror("Error", "No se pudo guardar la venta")
             
+        texto = generar_texto_ticket(
+            numero_factura,
+            nombre_cliente,
+            productos_pdf,
+            total_venta
+        )
+
+        # 🧾 IMPRIMIR PRIMER TICKET
+        imprimir_ticket(texto)
+
+        # 🔥 ESPERAR UN MOMENTO (para que puedas cortar)
+        self.ventana.after(1500, lambda: self.preguntar_copia(
+            numero_factura,
+            nombre_cliente,
+            productos_pdf,
+            total_venta
+        ))
+            
+            
+    def preguntar_copia(self, numero_factura, nombre_cliente, productos, total):
+        respuesta = messagebox.askyesno("Copia", "¿Desea imprimir copia del ticket?")
+
+        if respuesta:
+            texto_copia = generar_texto_ticket(
+                numero_factura,
+                nombre_cliente,
+                productos,
+                total,
+                copia=True
+            )
+            imprimir_ticket(texto_copia)        
+    
     def cobrar_evento(self, event):
         self.cobrar()
             
@@ -635,15 +667,15 @@ class VentanaVenta:
         # Pone el cursor/foco automáticamente en esta nueva ventana
         self.ventana_cliente.focus_set()
 
-        # Nombre
-        tk.Label(self.ventana_cliente, text="Nombre").pack(pady=5)
-        self.entry_nombre_cliente = tk.Entry(self.ventana_cliente)
-        self.entry_nombre_cliente.pack(pady=5)
-
         # Documento
         tk.Label(self.ventana_cliente, text="Documento").pack(pady=5)
         self.entry_doc_cliente = tk.Entry(self.ventana_cliente)
         self.entry_doc_cliente.pack(pady=5)
+        
+        # Nombre
+        tk.Label(self.ventana_cliente, text="Nombre").pack(pady=5)
+        self.entry_nombre_cliente = tk.Entry(self.ventana_cliente)
+        self.entry_nombre_cliente.pack(pady=5)
 
         # Teléfono
         tk.Label(self.ventana_cliente, text="Teléfono").pack(pady=5)
