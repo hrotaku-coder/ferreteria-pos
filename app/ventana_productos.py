@@ -7,6 +7,7 @@ from tkinter import messagebox
 import csv
 
 import productos
+from utils import ruta_recurso
 
 class VentanaProductos:
     
@@ -64,8 +65,7 @@ class VentanaProductos:
 
         self.btn_editarproducto.grid(row=1, column=1, padx=10, pady=10, sticky="w")
         
-        ruta_impot = "iconos/import.png"
-        
+        ruta_impot = ruta_recurso("iconos/import.png")
         img = Image.open(ruta_impot)
         img = img.resize((40, 24))
         self.icono_import = ImageTk.PhotoImage(img)

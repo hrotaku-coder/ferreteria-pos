@@ -1,10 +1,17 @@
 import sqlite3
+import os
 
 def conectar():
-    conn = sqlite3.connect("database/data.db")
+    carpeta = os.path.join(os.getcwd(), "database")
+
+    if not os.path.exists(carpeta):
+        os.makedirs(carpeta)
+
+    ruta_db = os.path.join(carpeta, "data.db")
+
+    conn = sqlite3.connect(ruta_db)
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
-
 
 def crear_tablas():
     conn = conectar()

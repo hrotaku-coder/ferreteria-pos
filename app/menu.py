@@ -6,7 +6,10 @@ from ui import VentanaVenta
 from ventana_productos import VentanaProductos
 from ventana_compras import VentanaCompras
 from db import crear_tablas
+import os
+import sys
 
+from utils import ruta_recurso
 
 crear_tablas()
 
@@ -40,7 +43,8 @@ class VentanaMenu:
         frame.pack(pady=20)
 
         try:
-            img = Image.open(ruta_icono).resize((70, 70))
+            ruta = ruta_recurso(ruta_icono)
+            img = Image.open(ruta).resize((70, 70))
             icono = ImageTk.PhotoImage(img)
         except:
             icono = None

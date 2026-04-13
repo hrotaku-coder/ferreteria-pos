@@ -772,7 +772,7 @@ class VentanaVenta:
             self.entry_precio_manual.config(state="disabled")
         
 # Ventana principal
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = VentanaVenta(root)
-    root.mainloop()
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     app = VentanaVenta(root)
+#     root.mainloop()
