@@ -1,0 +1,173 @@
+[33mcommit 93eba739840616ac8d7a4d4223c051688586085e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Apr 12 20:34:23 2026 -0500
+
+    Version 1.1 12-04-2026
+
+[33mcommit e0d1922d62450094c0a2392d560cc72533132912[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Apr 12 12:28:43 2026 -0500
+
+    correciones
+
+[33mcommit d5ffb60967b7aff86acc4fb8f3456245871d5e56[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sat Apr 11 07:22:09 2026 -0500
+
+    RETOQUES
+
+[33mcommit 05ac0b579bd8b120c639c5d5a92aca23f95af5b6[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Wed Apr 8 07:25:58 2026 -0500
+
+    avance 8/04
+
+[33mcommit 01f4ecc24c1b7faa5e693519e7c2097ae6bee0ac[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Mon Apr 6 19:54:25 2026 -0500
+
+    V1.0 06042026
+
+[33mcommit 490e8d0515840b47450b1fe89d6b87aa0e98c874[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Apr 5 23:29:45 2026 -0500
+
+    avance en compras
+
+[33mcommit 466138d3154732e53ecab4f816447e4121b3baf0[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Apr 5 12:29:29 2026 -0500
+
+    CONFIGURACION FACTURA
+
+[33mcommit d34854fe5b96d05cbae285fdbf66d9352e492374[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Apr 5 00:20:11 2026 -0500
+
+    se avanzo en el consecutivo factura
+
+[33mcommit ff429a4a9ddcd172b4c010c2f88153bc21db9967[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sat Apr 4 00:14:01 2026 -0500
+
+    se avanzo en la ventana ventas
+
+[33mcommit 1c53812884c818f62bdf59a19fbe4581935e9e27[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Wed Apr 1 13:48:36 2026 -0500
+
+    se agrego el boton eliminar y su funcion
+
+[33mcommit 56ea6c7a0b5722e954172967fb484d304a5dc01d[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 31 07:19:14 2026 -0500
+
+    modificacion en el import
+
+[33mcommit 54e1919fe94dd4494efae908a04a355ae02713cf[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Mon Mar 30 17:07:17 2026 -0500
+
+    Se avanzo en la VentanaProductos
+
+[33mcommit 016e0ab351f2a1dc1e55f29c9b9d6e79625d0a5b[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Mon Mar 30 07:07:09 2026 -0500
+
+    tabla de listado de productos
+
+[33mcommit 4c3936a4ace6a40ba02ce2ac635a00c2f1b481d4[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Mar 29 19:49:22 2026 -0500
+
+    Formulario de productos conectado y guardando datos en base de datos
+
+[33mcommit ee86dda1b433535c35065c2273a02a390d1d1a0b[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 24 00:18:49 2026 -0500
+
+    creamos ventana menu
+
+[33mcommit 1497c94eb2c74348577fe2a8881928356df2b021[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Mon Mar 23 12:18:23 2026 -0500
+
+    avance boton cobro
+
+[33mcommit aad60766d68eb3b4fa6d321a25d4ee1c08d473a6[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Mon Mar 23 01:09:43 2026 -0500
+
+    interfaz con funciones
+
+[33mcommit 75ac9bd62ad90d617eab64e317fc87429b50afce[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sun Mar 22 12:07:35 2026 -0500
+
+    interfaz grafica ventana venta terminada
+
+[33mcommit a0c653fba13e7b19387762e0669ecc09557d53b7[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Sat Mar 21 15:46:20 2026 -0500
+
+    avance con los entry
+
+[33mcommit 23b737dbfa6fd8bee2f8466b59efbfd09bafab36[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Fri Mar 20 23:22:57 2026 -0500
+
+    avance frame_datos
+
+[33mcommit 631aeed27e44047d11e4b6875826d7e5f65b16d1[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Fri Mar 20 12:24:45 2026 -0500
+
+    avance
+
+[33mcommit 0d47b9564c0863f408b662fbc9b6a953559c485a[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Thu Mar 19 13:35:50 2026 -0500
+
+    se agregaron btn NV y BTN Del.
+
+[33mcommit 98bd79122ccd0906b39c5d342c96d28e5ad4455a[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Wed Mar 18 20:48:17 2026 -0500
+
+    avance FLAME Y BOTONES
+
+[33mcommit cef3989f3f42cd00abf92a7299f94f17a70ee345[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 17 23:18:07 2026 -0500
+
+    Avance: sistema POS con productos, clientes y ventas conectadas
+
+[33mcommit ce6a6413d4969ec457544c59151a3fdfe21d729d[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 17 22:29:36 2026 -0500
+
+    Estructura inicial del proyecto
+
+[33mcommit daf9aba6bd1cc103d177b7441057c4cf1055442e[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 17 22:22:41 2026 -0500
+
+    Agregando gitignore
+
+[33mcommit e5d061e089997f162a19270ed000293a76d6dc10[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 17 22:21:42 2026 -0500
+
+    Agregando gitignore
+
+[33mcommit e53f9d66a364fa28fec5de8b9ffa2447e1a01b41[m
+Author: hrotaku-coder <hrotaku@gmail.com>
+Date:   Tue Mar 17 22:14:53 2026 -0500
+
+    Actualizando README
+
+[33mcommit 908956ef6defd82405e5e9703ae15ddd9bddeb94[m
+Author: Héctor _Ramos <hrotaku@gmail.com>
+Date:   Tue Mar 17 21:52:39 2026 -0500
+
+    Initial commit
