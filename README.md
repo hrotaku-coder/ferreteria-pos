@@ -73,3 +73,5 @@ git log
                 Atajos de teclado (F1, F2, F3, Delete)
                 Reset automático de tipo de precio a precio1
                 Flujo rápido tipo sistema real de tienda
+
+13_04_2026 V1.10 se corrigieron errores de empaquetacion
