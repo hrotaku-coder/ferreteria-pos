@@ -542,26 +542,41 @@ class VentanaVenta:
                 messagebox.showerror("Error PDF", f"Venta guardada, pero falló el PDF: {e}")
 
             self.limpiar_venta()
+
         else:
             messagebox.showerror("Error", "No se pudo guardar la venta")
             
-        texto = generar_texto_ticket(
-            numero_factura,
-            nombre_cliente,
-            productos_pdf,
-            total_venta
-        )
+        # 🔥 PREGUNTAR SI DESEA IMPRIMIR
+        imprimir = messagebox.askyesno("Imprimir", "¿Desea imprimir ticket?")
 
-        # 🧾 IMPRIMIR PRIMER TICKET
-        imprimir_ticket(texto)
+        if imprimir:
+            texto = generar_texto_ticket(
+                numero_factura,
+                nombre_cliente,
+                productos_pdf,
+                total_venta
+            )
 
-        # 🔥 ESPERAR UN MOMENTO (para que puedas cortar)
-        self.ventana.after(1500, lambda: self.preguntar_copia(
-            numero_factura,
-            nombre_cliente,
-            productos_pdf,
-            total_venta
-        ))
+            imprimir_ticket(texto)
+
+            self.ventana.after(1500, lambda: self.preguntar_copia(
+                numero_factura,
+                nombre_cliente,
+                productos_pdf,
+                total_venta
+            ))
+
+        else:
+            # 🔥 SOLO SI NO IMPRIME
+            self.mostrar_mensaje_temporal("✅ Venta registrada")
+
+            # 🔥 PREGUNTAR COPIA SOLO SI IMPRIME
+            self.ventana.after(1500, lambda: self.preguntar_copia(
+                numero_factura,
+                nombre_cliente,
+                productos_pdf,
+                total_venta
+            ))
             
             
     def preguntar_copia(self, numero_factura, nombre_cliente, productos, total):
@@ -579,7 +594,35 @@ class VentanaVenta:
     
     def cobrar_evento(self, event):
         self.cobrar()
-            
+
+    def mostrar_mensaje_temporal(self, mensaje, duracion=1500):
+        ventana_msg = tk.Toplevel(self.ventana)
+        ventana_msg.title("Información")
+        ventana_msg.geometry("300x100")
+        ventana_msg.resizable(False, False)
+
+        # Centrar ventana
+        ancho = 300
+        alto = 100
+        x = (ventana_msg.winfo_screenwidth() // 2) - (ancho // 2)
+        y = (ventana_msg.winfo_screenheight() // 2) - (alto // 2)
+        ventana_msg.geometry(f"{ancho}x{alto}+{x}+{y}")
+
+        label = tk.Label(
+            ventana_msg,
+            text=mensaje,
+            font=("Arial", 12, "bold"),
+            fg="green"
+        )
+        label.pack(expand=True)
+
+        # Siempre al frente
+        ventana_msg.lift()
+        ventana_msg.attributes('-topmost', True)
+
+        # Cerrar automáticamente
+        ventana_msg.after(duracion, ventana_msg.destroy)
+                
             
     def limpiar_venta(self):
         # limpiar tabla
@@ -702,11 +745,18 @@ class VentanaVenta:
 
         print("✅ Cliente guardado")
 
-        # cerrar ventana
+        # 🔥 Cerrar ventana
         self.ventana_cliente.destroy()
 
-        # recargar clientes en combobox
+        # 🔥 Recargar clientes
         self.cargar_clientes()
+
+        # 🔥 SELECCIONAR AUTOMÁTICAMENTE EL NUEVO CLIENTE
+        self.combo_nit.set(documento)
+        self.combo_cliente.set(nombre)
+
+        # 🔥 Mover foco a producto (flujo rápido)
+        self.combo_producto.focus()
         
     def atajo_crear_cliente(self, event):
         self.abrir_ventana_cliente()

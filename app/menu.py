@@ -65,19 +65,27 @@ class VentanaMenu:
         
                 
     def abrir_venta(self):
-        # 1. Ocultar la ventana del menú principal
+        # 1. Ocultar el menú
         self.ventana.withdraw()
         
-        # 2. Crear y abrir la ventana de ventas
+        # 2. Crear ventana de venta
         ventana_venta = tk.Toplevel(self.ventana)
+
+        # 🔥 FORZAR FOCO Y QUE SE ABRA ACTIVA
+        ventana_venta.lift()
+        ventana_venta.attributes('-topmost', True)
+        ventana_venta.after(100, lambda: ventana_venta.attributes('-topmost', False))
+        ventana_venta.focus_force()
+
+        # 3. Cargar la interfaz de ventas
         VentanaVenta(ventana_venta)
         
-        # 3. Función interna para restaurar el menú al cerrar
+        # 4. Función para restaurar el menú
         def al_cerrar_venta():
-            self.ventana.deiconify() # Vuelve a mostrar el menú
-            ventana_venta.destroy()  # Cierra definitivamente la ventana de ventas
+            self.ventana.deiconify()
+            ventana_venta.destroy()
             
-        # 4. Detectar cuando se presiona la "X" de la ventana de ventas
+        # 5. Evento al cerrar
         ventana_venta.protocol("WM_DELETE_WINDOW", al_cerrar_venta)
             
     def abrir_productos(self):
@@ -114,6 +122,7 @@ class VentanaMenu:
         
     def abrir_reportes(self):
         messagebox.showinfo("Reportes", "Funcionalidad de reportes en desarrollo.")
+        
         
 
 
