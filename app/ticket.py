@@ -45,8 +45,35 @@ def generar_texto_ticket(numero, cliente, productos, total, copia=False):
     texto += linea()
 
     # PRODUCTOS
+    def dividir_texto(texto, ancho):
+        palabras = texto.split()
+        lineas = []
+        linea_actual = ""
+
+        for palabra in palabras:
+            if len(linea_actual) + len(palabra) + 1 <= ancho:
+                if linea_actual:
+                    linea_actual += " " + palabra
+                else:
+                    linea_actual = palabra
+            else:
+                lineas.append(linea_actual)
+                linea_actual = palabra
+
+        if linea_actual:
+            lineas.append(linea_actual)
+
+        return lineas
+
     for ref, nombre, cant, precio, subtotal in productos:
-        texto += nombre[:ancho] + "\n"
+        # Mostrar referencia
+        texto += f"Ref: {ref}\n"
+
+        # Dividir nombre en varias líneas
+        lineas_nombre = dividir_texto(nombre, ancho)
+
+        for linea_nombre in lineas_nombre:
+            texto += linea_nombre + "\n"
 
         precio_txt = f"{precio:,.0f}"
         subtotal_txt = f"{subtotal:,.0f}"
