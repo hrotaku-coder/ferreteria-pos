@@ -559,25 +559,16 @@ class VentanaVenta:
 
             imprimir_ticket(texto)
 
-            self.ventana.after(1500, lambda: self.preguntar_copia(
+            self.ventana.after(1500, lambda: self.post_impresion(
                 numero_factura,
                 nombre_cliente,
                 productos_pdf,
                 total_venta
             ))
-
         else:
             # 🔥 SOLO SI NO IMPRIME
             self.mostrar_mensaje_temporal("✅ Venta registrada")
-
-            # 🔥 PREGUNTAR COPIA SOLO SI IMPRIME
-            self.ventana.after(1500, lambda: self.preguntar_copia(
-                numero_factura,
-                nombre_cliente,
-                productos_pdf,
-                total_venta
-            ))
-            
+            self.ventana.after(1600, self.reactivar_ventana)
             
     def preguntar_copia(self, numero_factura, nombre_cliente, productos, total):
         respuesta = messagebox.askyesno("Copia", "¿Desea imprimir copia del ticket?")
@@ -595,7 +586,7 @@ class VentanaVenta:
     def cobrar_evento(self, event):
         self.cobrar()
 
-    def mostrar_mensaje_temporal(self, mensaje, duracion=1500):
+    def mostrar_mensaje_temporal(self, mensaje, duracion=3000):
         ventana_msg = tk.Toplevel(self.ventana)
         ventana_msg.title("Información")
         ventana_msg.geometry("300x100")
@@ -733,7 +724,7 @@ class VentanaVenta:
         ).pack(pady=10)
         
     def guardar_cliente(self):
-        nombre = self.entry_nombre_cliente.get()
+        nombre = self.entry_nombre_cliente.get().strip().upper()
         documento = self.entry_doc_cliente.get()
         telefono = self.entry_tel_cliente.get()
 
@@ -820,7 +811,18 @@ class VentanaVenta:
         else:
             self.entry_precio_manual.delete(0, tk.END)
             self.entry_precio_manual.config(state="disabled")
+            
+    def reactivar_ventana(self):
+        self.ventana.lift()
+        self.ventana.focus_force()
+        self.combo_producto.focus()
         
+    def post_impresion(self, numero_factura, nombre_cliente, productos, total):
+        self.preguntar_copia(numero_factura, nombre_cliente, productos, total)
+        
+        # 🔥 REACTIVAR VENTANA DESPUÉS DE TODO
+        self.reactivar_ventana()
+                
 # Ventana principal
 # if __name__ == "__main__":
 #     root = tk.Tk()
