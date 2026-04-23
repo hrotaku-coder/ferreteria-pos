@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from tkinter import filedialog
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from tkinter import messagebox
 import csv
 
@@ -98,6 +98,16 @@ class VentanaProductos:
         )
         
         self.btn_eliminarproducto.grid(row=1, column=3, padx=10, pady=10, sticky="w")
+        
+        self.btn_exportarproducto = tk.Button(
+            self.frame_operaciones,
+            text="Exportar a Excel",
+            font=("Arial", 11),
+            bg="#D1D3D5",
+            width=20,
+            command=self.exportar_productos
+        )
+        self.btn_exportarproducto.grid(row=1, column=4, padx=10, pady=10, sticky="w")
         
         
         self.frame_tabla = tk.LabelFrame(
@@ -302,6 +312,42 @@ class VentanaProductos:
 
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo leer el archivo Excel: {e}")
+            
+    def exportar_productos(self):
+        # 1. Preguntar dónde y con qué nombre guardar el archivo
+        ruta = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            initialfile="Inventario_Ferreteria.xlsx",
+            title="Guardar inventario como...",
+            filetypes=(("Archivos Excel", "*.xlsx"), ("Todos los archivos", "*.*"))
+        )
+
+        if not ruta:
+            return  # Si el usuario cierra la ventana de guardado, no hace nada
+
+        try:
+            # 2. Crear un archivo Excel en blanco
+            libro = Workbook()
+            hoja = libro.active
+            hoja.title = "Inventario"
+
+            # 3. Poner los títulos de las columnas en la primera fila
+            encabezados = ["Referencia", "Nombre", "Precio 1", "Precio 2", "Stock"]
+            hoja.append(encabezados)
+
+            # 4. Traer todos los productos de la base de datos y escribirlos fila por fila
+            lista = productos.listar_productos()
+            for p in lista:
+                id_, nombre, referencia, precio1, precio2, stock = p
+                # Se respeta el mismo orden de los encabezados
+                hoja.append([referencia, nombre, precio1, precio2, stock])
+
+            # 5. Guardar físicamente el archivo en la ruta elegida
+            libro.save(ruta)
+            messagebox.showinfo("Exportación exitosa", "El inventario se ha exportado a Excel correctamente.")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un problema al exportar: {e}")
 
     def filtrar_productos(self, event):
         texto = self.combo_buscarproducto.get().lower()

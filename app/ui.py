@@ -116,7 +116,9 @@ class VentanaVenta:
         self.entry_factura.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
         self.entry_factura.config(state="normal")
-        self.entry_factura.insert(0, "PENDIENTE")
+        # Usamos la función importada para ver el consecutivo actual
+        siguiente_factura = ver_siguiente_factura()
+        self.entry_factura.insert(0, siguiente_factura)
         self.entry_factura.config(state="readonly")
         
         self.lbl_fecha = tk.Label(self.frame_informacionfactura, text="Fecha:", font="Arial 12", bg="#D1D3D5")
@@ -632,10 +634,11 @@ class VentanaVenta:
         # reset total
         self.lbl_total_valor.config(text="$ 0")
         
-        # aumentar número de factura
+        # actualizar número de factura al nuevo consecutivo
         self.entry_factura.config(state="normal")
         self.entry_factura.delete(0, tk.END)
-        self.entry_factura.insert(0, "PENDIENTE")
+        siguiente_factura = ver_siguiente_factura()
+        self.entry_factura.insert(0, siguiente_factura)
         self.entry_factura.config(state="readonly")
                 
         self.ventana.after(100, lambda: self.combo_nit.focus())
@@ -755,7 +758,14 @@ class VentanaVenta:
     def filtrar_productos(self, event):
         texto = self.combo_producto.get().lower()
 
-        filtrados = [p for p in self.lista_productos if texto in p.lower()]
+        filtrados = []
+        for nombre in self.lista_productos:
+            # Obtenemos la referencia de tu diccionario y la pasamos a texto en minúsculas
+            referencia = str(self.productos_dict[nombre]["referencia"]).lower()
+            
+            # Comparamos: si el texto escrito está en el nombre O en la referencia, lo mostramos
+            if texto in nombre.lower() or texto in referencia:
+                filtrados.append(nombre)
 
         self.combo_producto["values"] = filtrados
         
