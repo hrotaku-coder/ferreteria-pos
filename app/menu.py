@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
+from container import VentanaReportes
 from ui import VentanaVenta
 from ventana_productos import VentanaProductos
 from ventana_compras import VentanaCompras
@@ -121,7 +122,19 @@ class VentanaMenu:
         ventana_compra.protocol("WM_DELETE_WINDOW", al_cerrar_compras)
         
     def abrir_reportes(self):
-        messagebox.showinfo("Reportes", "Funcionalidad de reportes en desarrollo.")
+        # Ocultamos el menú principal
+        self.ventana.withdraw()
+        
+        # Creamos la ventana de reportes
+        nueva_ventana = tk.Toplevel(self.ventana)
+        VentanaReportes(nueva_ventana)
+        
+        # Al cerrar reportes, volvemos al menú
+        def al_cerrar():
+            self.ventana.deiconify()
+            nueva_ventana.destroy()
+            
+        nueva_ventana.protocol("WM_DELETE_WINDOW", al_cerrar)
         
         
 

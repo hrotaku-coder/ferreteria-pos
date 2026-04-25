@@ -29,7 +29,7 @@ class VentanaProductos:
         self.ventana.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
 
         self.frame_operaciones = tk.LabelFrame(self.ventana, text="Gestion de Productos", font="Arial 12 bold", bg="#D1D3D5")
-        self.frame_operaciones.pack(fill="x", padx=10, pady=10,)
+        self.frame_operaciones.pack(fill="x", padx=15, pady=15,)
         
         self.lbl_buscarproducto = tk.Label(self.frame_operaciones, text="Buscar Producto:", font="Arial 12", bg="#D1D3D5")
         self.lbl_buscarproducto.grid(row=0, column=0, padx=10, pady=10, sticky="e")
