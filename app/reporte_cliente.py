@@ -93,34 +93,46 @@ class VistaReporteCliente:
         self.entry_hasta.set_date(datetime.now())
         self.cargar_datos()
 
-    def cargar_datos(self, cliente_filtro="", fecha_inicio=None, fecha_fin=None):
+    def cargar_datos(self, fecha_inicio=None, fecha_fin=None):
         for item in self.tabla.get_children():
             self.tabla.delete(item)
 
-        # DATOS DE PRUEBA (Nota que "Juan Pérez" tiene dos compras en fechas distintas)
-        datos_prueba = [
-            ("F001-00012345", "2024-06-01", "12345678", "Juan Pérez", "$150.00"),
-            ("F001-00012346", "2024-06-02", "87654321", "María López", "$200.00"),
-            ("F001-00012347", "2024-06-03", "12345678", "Juan Pérez", "$350.00"),
-            ("F001-00012348", "2024-08-15", "55667788", "Ana Torres", "$120.00"), 
-        ]
+        filtro = self.entry_cliente.get()
 
-        datos_a_mostrar = []
-        for v in datos_prueba:
-            comprobante, fecha, documento, nombre, total = v 
+        from db import conectar
+        conn = conectar()
+        cursor = conn.cursor()
+
+        # Consulta SQL correcta
+        query = """
+            SELECT v.numero_factura, v.fecha, c.documento, c.nombre, v.total 
+            FROM ventas v
+            JOIN clientes c ON v.cliente_id = c.id
+            WHERE 1=1
+        """
+        params = []
+
+        # Filtro de Nombre o Documento
+        if filtro:
+            query += " AND (c.nombre LIKE ? OR c.documento LIKE ?)"
+            params.extend([f"%{filtro}%", f"%{filtro}%"])
+        
+        # Filtro de Fechas
+        if fecha_inicio and fecha_fin:
+            query += " AND v.fecha BETWEEN ? AND ?"
+            params.extend([f"{fecha_inicio} 00:00:00", f"{fecha_fin} 23:59:59"])
+
+        try:
+            cursor.execute(query, params)
+            ventas_reales = cursor.fetchall()
+
+            for v in ventas_reales:
+                factura, fecha, doc, nombre, total = v
+                total_formateado = f"$ {total:,.0f}"
+                self.tabla.insert("", "end", values=(factura, fecha, doc, nombre, total_formateado))
+                
+        except Exception as e:
+            print(f"Error Reporte Cliente: {e}")
             
-            # 1. Validar Filtro de Fechas
-            if fecha_inicio and fecha_fin:
-                if not (fecha_inicio <= fecha <= fecha_fin):
-                    continue # Si no está en el rango, salta al siguiente
-            
-            # 2. Validar Filtro de Cliente (busca coincidencias en nombre O documento)
-            if cliente_filtro:
-                filtro_min = cliente_filtro.lower()
-                if filtro_min not in nombre.lower() and filtro_min not in documento:
-                    continue # Si no coincide, salta al siguiente
-
-            datos_a_mostrar.append(v)
-
-        for v in datos_a_mostrar:
-            self.tabla.insert("", "end", values=v)
+        finally:
+            conn.close()

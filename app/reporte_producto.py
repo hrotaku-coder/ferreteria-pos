@@ -90,49 +90,42 @@ class VistaReporteProducto:
         self.entry_hasta.set_date(datetime.now())
         self.cargar_datos()
 
-    def cargar_datos(self, producto_filtro="", fecha_inicio=None, fecha_fin=None):
+    def cargar_datos(self, fecha_inicio=None, fecha_fin=None):
+        # 1. Limpiar tabla visual
         for item in self.tabla.get_children():
             self.tabla.delete(item)
 
-        # DATOS DE PRUEBA: (Fecha, Referencia, Nombre, Cantidad, Subtotal)
-        # Observa que el cemento y la pintura se venden en varios días distintos
-        datos_brutos = [
-            ("2024-06-01", "REF-001", "Cemento Argos 50kg", 10, 350000),
-            ("2024-06-02", "REF-002", "Pintura Blanca 1 Galón", 2, 90000),
-            ("2024-06-03", "REF-001", "Cemento Argos 50kg", 5, 175000), # Otra venta de cemento
-            ("2024-08-15", "REF-003", "Martillo con mango madera", 1, 25000),
-            ("2024-08-16", "REF-002", "Pintura Blanca 1 Galón", 1, 45000), # Otra venta de pintura
-        ]
+        producto_filtro = self.entry_producto.get()
 
-        # Diccionario para agrupar las cantidades y sumar el dinero
-        productos_agrupados = {}
+        from db import conectar
+        conn = conectar()
+        cursor = conn.cursor()
 
-        for v in datos_brutos:
-            fecha, referencia, nombre, cantidad, total = v 
-            
-            # 1. Validar Rango de Fechas
-            if fecha_inicio and fecha_fin:
-                if not (fecha_inicio <= fecha <= fecha_fin):
-                    continue
-            
-            # 2. Validar Filtro de Producto
-            if producto_filtro:
-                filtro_min = producto_filtro.lower()
-                if filtro_min not in nombre.lower() and filtro_min not in referencia.lower():
-                    continue
+        # Aquí unimos detalle_venta con productos. ¡Sin tocar la tabla ventas!
+        query = """
+            SELECT dv.referencia, p.nombre, SUM(dv.cantidad), SUM(dv.subtotal)
+            FROM detalle_venta dv
+            JOIN productos p ON dv.referencia = p.referencia
+            WHERE 1=1
+        """
+        params = []
 
-            # 3. Lógica de Agrupación (Acumular cantidades y totales)
-            if referencia in productos_agrupados:
-                productos_agrupados[referencia]["cantidad"] += cantidad
-                productos_agrupados[referencia]["total"] += total
-            else:
-                productos_agrupados[referencia] = {
-                    "nombre": nombre,
-                    "cantidad": cantidad,
-                    "total": total
-                }
+        if producto_filtro:
+            query += " AND (p.nombre LIKE ? OR dv.referencia LIKE ?)"
+            params.extend([f"%{producto_filtro}%", f"%{producto_filtro}%"])
 
-        # Dibujar en la tabla los productos ya sumados
-        for ref, datos in productos_agrupados.items():
-            total_formateado = f"$ {int(datos['total']):,}" # Le ponemos formato de dinero
-            self.tabla.insert("", "end", values=(ref, datos["nombre"], datos["cantidad"], total_formateado))
+        # Agrupamos por referencia para que sume correctamente
+        query += " GROUP BY dv.referencia"
+
+        try:
+            cursor.execute(query, params)
+            resultados = cursor.fetchall()
+
+            for res in resultados:
+                ref, nombre, cantidad, total = res
+                total_formateado = f"$ {total:,.0f}"
+                self.tabla.insert("", "end", values=(ref, nombre, cantidad, total_formateado))
+        except Exception as e:
+            print(f"Error cargando productos: {e}")
+        finally:
+            conn.close()

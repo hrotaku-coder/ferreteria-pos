@@ -105,25 +105,41 @@ class VistaReporteGeneral:
         self.cargar_datos()
 
     def cargar_datos(self, fecha_inicio=None, fecha_fin=None):
+        # 1. Limpiamos la tabla visual
         for item in self.tabla.get_children():
             self.tabla.delete(item)
 
-        datos_prueba = [
-            ("2024-06-01", "F001-00012345", "Juan Pérez", "12345678", "$150.00"),
-            ("2024-06-02", "F001-00012346", "María López", "87654321", "$200.00"),
-            ("2024-06-03", "F001-00012347", "Carlos García", "11223344", "$350.00"),
-            ("2024-08-15", "F001-00012348", "Ana Torres", "55667788", "$120.00"), 
-        ]
+        # 2. Conectamos a la base de datos
+        from db import conectar
+        conn = conectar()
+        cursor = conn.cursor()
 
-        datos_a_mostrar = []
-        for v in datos_prueba:
-            fecha_factura = v[0] 
+        # 3. Consulta SQL con los nombres exactos de tu base de datos
+        query = """
+            SELECT v.fecha, v.numero_factura, c.nombre, c.documento, v.total 
+            FROM ventas v
+            JOIN clientes c ON v.cliente_id = c.id
+            WHERE 1=1
+        """
+        parametros = []
+
+        # Filtramos por fechas
+        if fecha_inicio and fecha_fin:
+            query += " AND v.fecha BETWEEN ? AND ?"
+            parametros.extend([f"{fecha_inicio} 00:00:00", f"{fecha_fin} 23:59:59"])
+
+        try:
+            cursor.execute(query, parametros)
+            ventas_reales = cursor.fetchall()
+
+            # 4. Insertamos los datos en la tabla
+            for v in ventas_reales:
+                fecha, num_factura, nombre, doc, total = v
+                total_formateado = f"$ {total:,.0f}" 
+                self.tabla.insert("", "end", values=(fecha, num_factura, nombre, doc, total_formateado))
+                
+        except Exception as e:
+            print(f"Error Reporte General: {e}")
             
-            if fecha_inicio and fecha_fin:
-                if fecha_inicio <= fecha_factura <= fecha_fin:
-                    datos_a_mostrar.append(v)
-            else:
-                datos_a_mostrar.append(v)
-
-        for v in datos_a_mostrar:
-            self.tabla.insert("", "end", values=v)
+        finally:
+            conn.close()
