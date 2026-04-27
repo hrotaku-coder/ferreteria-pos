@@ -104,7 +104,6 @@ class VentanaMenu:
             
         # 4. Detectar cuando se presiona la "X" de la ventana de productos
         ventana_prod.protocol("WM_DELETE_WINDOW", al_cerrar_productos)
-
     def abrir_compras(self):
         # 1. Ocultar la ventana del menú principal
         self.ventana.withdraw()

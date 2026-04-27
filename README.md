@@ -27,6 +27,10 @@ git status
 📜 VER HISTORIAL
 git log
 
+ATAJO DEL TECLADO PARA COMENTAR Y DESCOMENTAR "#" VARIAS LINEAS
+
+Ctrl + /?
+
 empaquetado
 pyinstaller --windowed --onefile --add-data "..\iconos;iconos" menu.py
 
